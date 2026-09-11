@@ -23,7 +23,9 @@ jobs:
           python - <<'PY'
           import zipfile
           with zipfile.ZipFile('/tmp/project.zip') as z:
-              z.testzip()
+              bad = z.testzip()
+              if bad:
+                  raise SystemExit(f'Bad ZIP member: {bad}')
               z.extractall('.')
           PY
           rm -rf .stage3
@@ -33,6 +35,7 @@ jobs:
       - name: Validate source
         env:
           QT_QPA_PLATFORM: offscreen
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           python -m compileall -q .
           python tests/test_v42_responsive_ui.py
