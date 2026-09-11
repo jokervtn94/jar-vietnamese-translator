@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Translator runtime/project outputs
+*.autosave.jtv2.json
+*.jtv2.json
+*.translation.csv
+*_translate_vi.json
+*.build-report.json
+*.regression-report.json
+runtime_test_*/
+runtime-test-*/
+*.log
+
+# Game archives and binary outputs
+*.jar
+*.jad
+
+# Package archives
+*.zip
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
