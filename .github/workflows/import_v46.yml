@@ -30,6 +30,7 @@ jobs:
           PY
           rm -rf .stage3
           rm -f .github/workflows/import_v46.yml
+          rm -f .github/workflows/tests.yml
           rm -rf .bootstrap .payload
           rm -f .github/workflows/bootstrap.yml .github/workflows/unpack_payload.yml
       - name: Validate source
