@@ -59,19 +59,19 @@ jobs:
             Copy-Item 'dist/*' $out -Recurse
           }
           @'
-          JAR Vietnamese Translator V4.6 - Windows Portable
+          JAR Vietnamese Translator V4.6.1 - Windows Portable
 
           Khong can cai Python.
           Giai nen toan bo file ZIP truoc khi chay.
           Mo file .exe trong thu muc portable de khoi dong ung dung.
           Khong xoa cac thu muc/file nam canh file .exe.
           '@ | Set-Content -Encoding UTF8 "$out/README_PORTABLE.txt"
-          Compress-Archive -Path "$out/*" -DestinationPath 'JAR_Vietnamese_Translator_V4.6_Windows_Portable.zip' -Force
+          Compress-Archive -Path "$out/*" -DestinationPath 'JAR_Vietnamese_Translator_V4.6.1_Windows_Portable.zip' -Force
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JAR_Vietnamese_Translator_V4.6_Windows_Portable
-          path: JAR_Vietnamese_Translator_V4.6_Windows_Portable.zip
+          name: JAR_Vietnamese_Translator_V4.6.1_Windows_Portable
+          path: JAR_Vietnamese_Translator_V4.6.1_Windows_Portable.zip
           if-no-files-found: error
           retention-days: 30
