@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.bootstrap/project.zip'
+      - '.bootstrap/**'
       - '.github/workflows/bootstrap.yml'
 
 permissions:
@@ -15,15 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unpack clean project bundle
+      - name: Reassemble and unpack clean project bundle
         run: |
+          cat .bootstrap/chunk_00.txt .bootstrap/chunk_01.txt .bootstrap/chunk_02.txt .bootstrap/chunk_03_08.txt | tr -d '\n\r ' | base64 -d > /tmp/project.zip
           python - <<'PY'
           import zipfile
-          with zipfile.ZipFile('.bootstrap/project.zip') as z:
+          with zipfile.ZipFile('/tmp/project.zip') as z:
               z.extractall('.')
           PY
           rm -rf .bootstrap
           rm -f .github/workflows/bootstrap.yml
+      - name: Validate extracted source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m compileall -q .
       - name: Commit source tree
         run: |
           git config user.name 'github-actions[bot]'
