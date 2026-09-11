@@ -27,3 +27,4 @@ jobs:
           python tests/test_v45_json_exchange.py
           python tests/test_v46_json_protocol.py
           python tests/test_v461_jar_extension.py
+          python tests/test_v462_same_name_rebuild.py
