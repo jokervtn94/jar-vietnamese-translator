@@ -1,0 +1,77 @@
+name: build-portable-windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'core/**'
+      - 'gui/**'
+      - 'models/**'
+      - 'exporters/**'
+      - 'requirements.txt'
+      - 'JAR_Translator.spec'
+      - '.github/workflows/build_portable.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build portable app
+        shell: pwsh
+        run: |
+          if (Test-Path 'JAR_Translator.spec') {
+            pyinstaller --noconfirm --clean JAR_Translator.spec
+          } else {
+            pyinstaller --noconfirm --clean --windowed --name JAR_Vietnamese_Translator app.py
+          }
+
+      - name: Create portable package
+        shell: pwsh
+        run: |
+          $out = 'portable-package'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          if (Test-Path 'dist/JAR_Vietnamese_Translator') {
+            Copy-Item 'dist/JAR_Vietnamese_Translator' "$out/JAR_Vietnamese_Translator" -Recurse
+          } elseif (Test-Path 'dist/JAR_Translator') {
+            Copy-Item 'dist/JAR_Translator' "$out/JAR_Translator" -Recurse
+          } else {
+            Copy-Item 'dist/*' $out -Recurse
+          }
+          @'
+          JAR Vietnamese Translator V4.6 - Windows Portable
+
+          Khong can cai Python.
+          Giai nen toan bo file ZIP truoc khi chay.
+          Mo file .exe trong thu muc portable de khoi dong ung dung.
+          Khong xoa cac thu muc/file nam canh file .exe.
+          '@ | Set-Content -Encoding UTF8 "$out/README_PORTABLE.txt"
+          Compress-Archive -Path "$out/*" -DestinationPath 'JAR_Vietnamese_Translator_V4.6_Windows_Portable.zip' -Force
+
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JAR_Vietnamese_Translator_V4.6_Windows_Portable
+          path: JAR_Vietnamese_Translator_V4.6_Windows_Portable.zip
+          if-no-files-found: error
+          retention-days: 30
