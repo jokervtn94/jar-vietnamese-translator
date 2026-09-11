@@ -1,0 +1,41 @@
+name: unpack-project-payload
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.payload/**'
+      - '.github/workflows/unpack_payload.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reassemble and unpack clean project bundle
+        run: |
+          cat .payload/part_00.txt .payload/part_01.txt .payload/part_02.txt .payload/part_03.txt .payload/part_04.txt .payload/part_05.txt .payload/part_06.txt .payload/part_07.txt .payload/part_08.txt .payload/part_09.txt .payload/part_10.txt .payload/part_11.txt .payload/part_12.txt | tr -d '\n\r ' | base64 -d > /tmp/project.zip
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/project.zip') as z:
+              z.extractall('.')
+          PY
+          rm -rf .payload
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap.yml
+          rm -f .github/workflows/unpack_payload.yml
+      - name: Validate extracted source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m compileall -q .
+      - name: Commit source tree
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: import JAR Vietnamese Translator V4.6 source' || exit 0
+          git push
