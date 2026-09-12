@@ -34,6 +34,7 @@ MIRRORED_MODULES = (
     "gui/runtime_log_hook.py",
     "gui/diagnostic_bundle_inspector_hook.py",
     "gui/diagnostics_workspace_hook.py",
+    "gui/patch_update_hook.py",
     "gui/task_progress_dialog.py",
 )
 
@@ -74,3 +75,5 @@ def test_portable_bootstrap_installs_runtime_compatibility_hooks():
     assert "install_diagnostic_compare(MainWindow)" in bootstrap
     assert "from gui.runtime_log_hook import install_runtime_log_analysis" in bootstrap
     assert "install_runtime_log_analysis(MainWindow)" in bootstrap
+    assert "from gui.patch_update_hook import install_patch_update_ui" in bootstrap
+    assert "install_patch_update_ui(MainWindow)" in bootstrap
