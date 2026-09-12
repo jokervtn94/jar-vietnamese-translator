@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel
 from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.runtime_compat_presenter import summarize_runtime
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
+from core.dependency_path_presenter import summarize_dependency_path
 
 
 class RuntimeCompatibilityWorker(QThread):
@@ -83,9 +84,11 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_api_value = QLabel("—")
         self.runtime_wma_value = QLabel("—")
         self.runtime_activation_value = QLabel("—")
+        self.runtime_startup_path_value = QLabel("—")
         self.runtime_api_value.setWordWrap(True)
         self.runtime_wma_value.setWordWrap(True)
         self.runtime_activation_value.setWordWrap(True)
+        self.runtime_startup_path_value.setWordWrap(True)
 
         rows = [
             ("Target:", self.runtime_target_value),
@@ -94,6 +97,7 @@ def install_runtime_compatibility(MainWindow):
             ("API:", self.runtime_api_value),
             ("WMA/SMS:", self.runtime_wma_value),
             ("Activation:", self.runtime_activation_value),
+            ("Startup path:", self.runtime_startup_path_value),
         ]
         for row, (label, widget) in enumerate(rows, start=1):
             key = QLabel(label)
@@ -112,6 +116,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_api_value.setText("Đang quét bytecode / optional API…")
         self.runtime_wma_value.setText("Đang kiểm tra WMA / SMS…")
         self.runtime_activation_value.setText("Đang kiểm tra activation/payment flow…")
+        self.runtime_startup_path_value.setText("Đang dựng dependency graph từ MIDlet entry…")
 
     def _runtime_compat_start(self):
         if not self.result:
@@ -148,6 +153,7 @@ def install_runtime_compatibility(MainWindow):
             self.runtime_wma_value.setText("Không phát hiện")
 
         self.runtime_activation_value.setText(_activation_text(activation))
+        self.runtime_startup_path_value.setText(summarize_dependency_path(activation))
 
         level = (summary.risk or "low").lower()
         if level == "high":
@@ -165,10 +171,16 @@ def install_runtime_compatibility(MainWindow):
         else:
             self.runtime_activation_value.setStyleSheet("color:#059669;")
 
+        if activation.startup_activation_reachable:
+            self.runtime_startup_path_value.setStyleSheet("color:#DC2626; font-weight:600;")
+        else:
+            self.runtime_startup_path_value.setStyleSheet("")
+
         self.statusBar().showMessage(
             f"RG35XX compatibility: {summary.score}/100 · {summary.risk.upper()}"
             + (" · WMA/SMS detected" if summary.uses_wma_sms else "")
-            + (" · activation/payment flow suspected" if activation.risk != "low" else ""),
+            + (" · activation/payment flow suspected" if activation.risk != "low" else "")
+            + (" · startup path reachable" if activation.startup_activation_reachable else ""),
             8000,
         )
 
@@ -178,6 +190,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_api_value.setText(message)
         self.runtime_wma_value.setText("—")
         self.runtime_activation_value.setText("—")
+        self.runtime_startup_path_value.setText("—")
 
     def _runtime_compat_release(self, worker):
         if getattr(self, "_runtime_compat_worker", None) is worker:
