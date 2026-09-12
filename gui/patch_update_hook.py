@@ -24,21 +24,24 @@ def install_patch_update_ui(MainWindow):
         action.triggered.connect(self._apply_update_patch)
         menu = self.settings_btn.menu() if hasattr(self, "settings_btn") else None
         if menu is not None:
-            menu.insertSeparator(menu.actions()[0] if menu.actions() else None)
-            menu.insertAction(menu.actions()[0] if menu.actions() else None, action)
+            first = menu.actions()[0] if menu.actions() else None
+            menu.insertSeparator(first)
+            menu.insertAction(first, action)
         self.apply_patch_action = action
 
-        # Also surface the updater directly in the full-width Diagnostics page.
-        top = getattr(self, "diagnostics_top_layout", None)
-        if top is not None:
-            button = QPushButton("Update Patch")
-            button.setObjectName("PatchUpdateButton")
-            button.setToolTip("Chọn patch ZIP, kiểm tra SHA-256, backup và cập nhật module")
-            button.clicked.connect(self._apply_update_patch)
-            # Place before the Back button when possible.
-            insert_at = max(0, top.count() - 1)
-            top.insertWidget(insert_at, button)
-            self.patch_update_btn = button
+        nav = getattr(self, "diagnostics_nav_btn", None)
+        if nav is not None:
+            header = nav.parentWidget()
+            layout = header.layout() if header is not None else None
+            if layout is not None:
+                button = QPushButton("Update Patch")
+                button.setObjectName("PatchUpdateButton")
+                button.setFixedHeight(42)
+                button.setToolTip("Chọn patch ZIP, kiểm tra SHA-256, backup và cập nhật module")
+                button.clicked.connect(self._apply_update_patch)
+                nav_index = layout.indexOf(nav)
+                layout.insertWidget(max(0, nav_index), button, 0)
+                self.patch_update_btn = button
 
     def _apply_update_patch(self):
         selected, _ = QFileDialog.getOpenFileName(
