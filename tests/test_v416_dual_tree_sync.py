@@ -22,6 +22,7 @@ MIRRORED_MODULES = (
     "core/compatibility_report.py",
     "core/diagnostic_history.py",
     "core/diagnostic_compare.py",
+    "core/diagnostic_verdict.py",
     "gui/runtime_compat_hook.py",
     "gui/diagnostic_compare_hook.py",
     "gui/task_progress_dialog.py",
