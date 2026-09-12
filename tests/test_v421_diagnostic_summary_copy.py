@@ -1,5 +1,4 @@
-from core.compatibility_report import CompatibilityExport
-from gui.runtime_compat_hook import _diagnostic_summary
+from core.compatibility_report import CompatibilityExport, diagnostic_summary
 
 
 def test_diagnostic_summary_includes_startup_path_and_top_action():
@@ -30,7 +29,7 @@ def test_diagnostic_summary_includes_startup_path_and_top_action():
         ],
     )
 
-    text = _diagnostic_summary(export)
+    text = diagnostic_summary(export)
 
     assert "JAR RG35XX DIAGNOSTIC SUMMARY" in text
     assert "Runtime: 72/100 · HIGH" in text
@@ -40,12 +39,15 @@ def test_diagnostic_summary_includes_startup_path_and_top_action():
     assert "Kiểm tra class trên startup path" in text
 
 
-def test_runtime_hook_exposes_next_action_and_copy_controls():
+def test_runtime_hook_exposes_next_action_copy_history_and_folder_controls():
     source = open("gui/runtime_compat_hook.py", encoding="utf-8").read()
     portable = open("app/gui/runtime_compat_hook.py", encoding="utf-8").read()
 
     for text in (source, portable):
         assert '("Next action:", self.runtime_next_action_value)' in text
         assert 'QPushButton("Copy diagnostic summary")' in text
-        assert "QApplication.clipboard().setText(_diagnostic_summary(export))" in text
+        assert "QApplication.clipboard().setText(diagnostic_summary(export))" in text
         assert "self.runtime_copy_btn.setEnabled(True)" in text
+        assert "self.runtime_history_combo = QComboBox()" in text
+        assert 'QPushButton("Open report folder")' in text
+        assert "self._diagnostic_history.add(export, json_path, txt_path)" in text
