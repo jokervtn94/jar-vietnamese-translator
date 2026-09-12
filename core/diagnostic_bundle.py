@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import shutil
 from typing import Any
+import zipfile
 
 from core.compatibility_report import CompatibilityReportExporter
 from core.runtime_diagnosis_summary import format_runtime_diagnosis_summary
@@ -17,6 +18,12 @@ class DiagnosticBundleResult:
     original_log_path: Path
     compatibility_json_path: Path | None = None
     compatibility_text_path: Path | None = None
+
+
+@dataclass
+class DiagnosticBundleZipResult:
+    bundle: DiagnosticBundleResult
+    zip_path: Path
 
 
 def _safe_name(value: str) -> str:
@@ -79,3 +86,39 @@ def export_diagnostic_bundle(
         compatibility_json_path=compatibility_json_path,
         compatibility_text_path=compatibility_text_path,
     )
+
+
+def zip_diagnostic_bundle(
+    bundle: DiagnosticBundleResult | str | Path,
+    zip_path: str | Path | None = None,
+) -> Path:
+    bundle_dir = bundle.directory if isinstance(bundle, DiagnosticBundleResult) else Path(bundle)
+    if not bundle_dir.is_dir():
+        raise FileNotFoundError(bundle_dir)
+
+    target = Path(zip_path) if zip_path is not None else bundle_dir.with_suffix(".zip")
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(bundle_dir.rglob("*")):
+            if path.is_file():
+                archive.write(path, arcname=path.relative_to(bundle_dir))
+    return target
+
+
+def export_diagnostic_bundle_zip(
+    output_parent: str | Path,
+    log_path: str | Path,
+    runtime_summary: Any,
+    compatibility_export: Any | None = None,
+    bundle_name: str | None = None,
+) -> DiagnosticBundleZipResult:
+    bundle = export_diagnostic_bundle(
+        output_parent,
+        log_path,
+        runtime_summary,
+        compatibility_export,
+        bundle_name,
+    )
+    zip_path = zip_diagnostic_bundle(bundle)
+    return DiagnosticBundleZipResult(bundle=bundle, zip_path=zip_path)
