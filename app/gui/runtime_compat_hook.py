@@ -7,6 +7,7 @@ from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.runtime_compat_presenter import summarize_runtime
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
 from core.dependency_path_presenter import summarize_dependency_path
+from core.startup_blocking_assessment import assess_startup_blocking
 
 
 class RuntimeCompatibilityWorker(QThread):
@@ -66,6 +67,7 @@ def install_runtime_compatibility(MainWindow):
         self._runtime_compat_worker = None
         self._runtime_compat_report = None
         self._activation_flow_report = None
+        self._startup_blocking_assessment = None
 
         card = QFrame()
         card.setObjectName("InnerCard")
@@ -85,10 +87,15 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_wma_value = QLabel("—")
         self.runtime_activation_value = QLabel("—")
         self.runtime_startup_path_value = QLabel("—")
-        self.runtime_api_value.setWordWrap(True)
-        self.runtime_wma_value.setWordWrap(True)
-        self.runtime_activation_value.setWordWrap(True)
-        self.runtime_startup_path_value.setWordWrap(True)
+        self.runtime_blocker_value = QLabel("—")
+        for widget in (
+            self.runtime_api_value,
+            self.runtime_wma_value,
+            self.runtime_activation_value,
+            self.runtime_startup_path_value,
+            self.runtime_blocker_value,
+        ):
+            widget.setWordWrap(True)
 
         rows = [
             ("Target:", self.runtime_target_value),
@@ -98,6 +105,7 @@ def install_runtime_compatibility(MainWindow):
             ("WMA/SMS:", self.runtime_wma_value),
             ("Activation:", self.runtime_activation_value),
             ("Startup path:", self.runtime_startup_path_value),
+            ("Assessment:", self.runtime_blocker_value),
         ]
         for row, (label, widget) in enumerate(rows, start=1):
             key = QLabel(label)
@@ -117,6 +125,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_wma_value.setText("Đang kiểm tra WMA / SMS…")
         self.runtime_activation_value.setText("Đang kiểm tra activation/payment flow…")
         self.runtime_startup_path_value.setText("Đang dựng dependency graph từ MIDlet entry…")
+        self.runtime_blocker_value.setText("Đang tổng hợp mức ảnh hưởng tới startup…")
 
     def _runtime_compat_start(self):
         if not self.result:
@@ -137,6 +146,9 @@ def install_runtime_compatibility(MainWindow):
     def _runtime_compat_done(self, report, summary, activation):
         self._runtime_compat_report = report
         self._activation_flow_report = activation
+        assessment = assess_startup_blocking(report.runtime, activation)
+        self._startup_blocking_assessment = assessment
+
         self.runtime_target_value.setText(summary.target)
         self.runtime_score_value.setText(f"{summary.score}/100")
         self.runtime_risk_value.setText(_risk_text(summary.risk))
@@ -146,14 +158,16 @@ def install_runtime_compatibility(MainWindow):
 
         if summary.uses_wma_sms:
             targets = ", ".join(summary.sms_targets) or "không thấy endpoint cố định"
-            self.runtime_wma_value.setText(
-                "DETECTED · chặn SMS thật · " + targets
-            )
+            self.runtime_wma_value.setText("DETECTED · chặn SMS thật · " + targets)
         else:
             self.runtime_wma_value.setText("Không phát hiện")
 
         self.runtime_activation_value.setText(_activation_text(activation))
         self.runtime_startup_path_value.setText(summarize_dependency_path(activation))
+        reason_preview = "; ".join(assessment.reasons[:2])
+        self.runtime_blocker_value.setText(
+            assessment.title + ((" · " + reason_preview) if reason_preview else "")
+        )
 
         level = (summary.risk or "low").lower()
         if level == "high":
@@ -176,12 +190,16 @@ def install_runtime_compatibility(MainWindow):
         else:
             self.runtime_startup_path_value.setStyleSheet("")
 
+        if assessment.severity == "high":
+            self.runtime_blocker_value.setStyleSheet("color:#DC2626; font-weight:700;")
+        elif assessment.severity == "medium":
+            self.runtime_blocker_value.setStyleSheet("color:#D97706; font-weight:700;")
+        else:
+            self.runtime_blocker_value.setStyleSheet("color:#059669; font-weight:600;")
+
         self.statusBar().showMessage(
-            f"RG35XX compatibility: {summary.score}/100 · {summary.risk.upper()}"
-            + (" · WMA/SMS detected" if summary.uses_wma_sms else "")
-            + (" · activation/payment flow suspected" if activation.risk != "low" else "")
-            + (" · startup path reachable" if activation.startup_activation_reachable else ""),
-            8000,
+            f"RG35XX: {summary.score}/100 · {summary.risk.upper()} · {assessment.title}",
+            9000,
         )
 
     def _runtime_compat_failed(self, message):
@@ -191,6 +209,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_wma_value.setText("—")
         self.runtime_activation_value.setText("—")
         self.runtime_startup_path_value.setText("—")
+        self.runtime_blocker_value.setText("—")
 
     def _runtime_compat_release(self, worker):
         if getattr(self, "_runtime_compat_worker", None) is worker:
