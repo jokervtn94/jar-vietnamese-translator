@@ -13,6 +13,7 @@ MIRRORED_MODULES = (
     "core/runtime_profiles.py",
     "core/runtime_api_analyzer.py",
     "core/compatibility_analyzer.py",
+    "core/build_readiness.py",
 )
 
 
