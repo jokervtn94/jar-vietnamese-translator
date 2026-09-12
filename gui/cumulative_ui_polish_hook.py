@@ -6,7 +6,7 @@ from core.version import APP_NAME, APP_VERSION
 
 
 def install_cumulative_ui_polish(MainWindow):
-    """Final presentation pass for the v4.31 cumulative portable UI."""
+    """Final presentation pass for the cumulative portable UI."""
     if getattr(MainWindow, "_cumulative_ui_polish_hook_installed", False):
         return MainWindow
     MainWindow._cumulative_ui_polish_hook_installed = True
@@ -15,10 +15,10 @@ def install_cumulative_ui_polish(MainWindow):
     def hooked_init(self, *args, **kwargs):
         original_init(self, *args, **kwargs)
 
-        title_text = f"{APP_NAME} v{APP_VERSION}-cumulative (Portable)"
-        self.setWindowTitle(title_text)
+        # Product naming stays stable: version is metadata, never part of app/window title.
+        self.setWindowTitle(APP_NAME)
         if hasattr(self, "app_title"):
-            self.app_title.setText(f"{APP_NAME} v{APP_VERSION}-cumulative")
+            self.app_title.setText(APP_NAME)
         if hasattr(self, "app_subtitle"):
             self.app_subtitle.setText("Dịch, kiểm tra tương thích và rebuild game Java/J2ME")
 
@@ -31,7 +31,7 @@ def install_cumulative_ui_polish(MainWindow):
                 elif text == "Phân tích tương thích · Runtime log · Compare · Diagnostic bundle":
                     label.setText("Phân tích khả năng tương thích, log runtime và chẩn đoán lỗi khi chạy game JAR trên FreeJ2ME / RG35XX.")
                 elif text == "Integrated":
-                    label.setText("v4.31 cumulative")
+                    label.setText(APP_VERSION)
 
         nav = getattr(self, "diagnostics_nav_btn", None)
         patch = getattr(self, "patch_update_btn", None)
@@ -55,7 +55,7 @@ def install_cumulative_ui_polish(MainWindow):
                 "QPushButton#PatchUpdateButton:hover {background:#D1FAE5;border-color:#6EE7B7;}"
             )
 
-        self.statusBar().showMessage(f"Sẵn sàng · Phiên bản {APP_VERSION}-cumulative (v431)")
+        self.statusBar().showMessage(f"Sẵn sàng · Phiên bản {APP_VERSION}")
 
     MainWindow.__init__ = hooked_init
     return MainWindow
