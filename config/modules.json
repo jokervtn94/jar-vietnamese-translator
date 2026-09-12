@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "app_version": "4.31-cumulative",
-  "patch_level": "v431",
+  "patch_level": "v434",
   "baseline_manifest": "config/integrated_patches.json",
   "modules": {
     "runtime": {"version": "1.0.0", "path": "runtime", "kind": "runtime", "restart_required": true},
