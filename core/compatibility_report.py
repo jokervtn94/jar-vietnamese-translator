@@ -10,6 +10,14 @@ from core.startup_blocking_assessment import assess_startup_blocking
 
 
 @dataclass
+class RecommendedAction:
+    priority: int
+    category: str
+    title: str
+    detail: str
+
+
+@dataclass
 class CompatibilityExport:
     schema: str = "jar-translator.compatibility-report.v1"
     generated_at_utc: str = ""
@@ -35,10 +43,56 @@ class CompatibilityExport:
     startup_title: str = "Không thấy blocker startup rõ ràng"
     startup_reasons: List[str] = field(default_factory=list)
     recommendation: str = ""
+    recommended_actions: List[RecommendedAction] = field(default_factory=list)
     diagnostic_note: str = "Read-only diagnostic output; no external transport or application state changes are performed."
 
 
 class CompatibilityReportExporter:
+    @staticmethod
+    def _recommended_actions(runtime_report, flow_report, startup_path: List[str]) -> List[RecommendedAction]:
+        target = getattr(runtime_report, "rg35xx", None)
+        unsupported = sorted(getattr(target, "unsupported", []) or []) if target is not None else []
+        conditional = sorted(getattr(target, "conditional", []) or []) if target is not None else []
+        suspicious = list(getattr(flow_report, "suspicious_classes", []) or [])
+        actions: List[RecommendedAction] = []
+
+        if startup_path:
+            actions.append(RecommendedAction(
+                1,
+                "startup_path",
+                "Kiểm tra class trên startup path",
+                " -> ".join(startup_path),
+            ))
+        if unsupported:
+            actions.append(RecommendedAction(
+                2 if startup_path else 1,
+                "unsupported_api",
+                "Kiểm tra API chưa được target runtime hỗ trợ",
+                ", ".join(unsupported),
+            ))
+        if suspicious and not startup_path:
+            actions.append(RecommendedAction(
+                2,
+                "suspicious_class",
+                "Kiểm tra class nghi vấn",
+                ", ".join(suspicious[:5]),
+            ))
+        if conditional:
+            actions.append(RecommendedAction(
+                3,
+                "conditional_api",
+                "Kiểm thử API conditional trực tiếp trên RG35XX",
+                ", ".join(conditional),
+            ))
+        if not actions:
+            actions.append(RecommendedAction(
+                4,
+                "runtime_test",
+                "Chạy kiểm thử thực tế trên FreeJ2ME / RG35XX",
+                "Không có blocker tĩnh rõ ràng; xác nhận hành vi bằng runtime test.",
+            ))
+        return sorted(actions, key=lambda item: (item.priority, item.category, item.title))
+
     def build(self, jar_path: str, runtime_report, flow_report) -> CompatibilityExport:
         target = getattr(runtime_report, "rg35xx", None)
         assessment = assess_startup_blocking(runtime_report, flow_report)
@@ -48,6 +102,7 @@ class CompatibilityReportExporter:
             if getattr(p, "startup_reachable", False) and getattr(p, "path", None)
         ]
         startup_path = list(max(reachable, key=lambda p: len(p.path)).path) if reachable else []
+        actions = self._recommended_actions(runtime_report, flow_report, startup_path)
         return CompatibilityExport(
             generated_at_utc=datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
             jar_name=Path(jar_path).name,
@@ -71,6 +126,7 @@ class CompatibilityReportExporter:
             startup_title=assessment.title,
             startup_reasons=list(assessment.reasons),
             recommendation=assessment.recommendation,
+            recommended_actions=actions,
         )
 
     @staticmethod
@@ -103,9 +159,12 @@ class CompatibilityReportExporter:
             "Startup path: " + (" -> ".join(report.startup_path) if report.startup_path else "not found"),
             f"Recommendation: {report.recommendation}",
             "",
-            report.diagnostic_note,
-            "",
+            "RECOMMENDED ACTIONS",
         ]
+        for action in report.recommended_actions:
+            lines.append(f"P{action.priority} · {action.title}")
+            lines.append(f"  {action.detail}")
+        lines.extend(["", report.diagnostic_note, ""])
         return "\n".join(lines)
 
     def write_pair(self, base_path: str | Path, report: CompatibilityExport):
