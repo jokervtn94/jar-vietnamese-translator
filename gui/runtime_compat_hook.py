@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
+    QComboBox,
     QFrame,
     QGridLayout,
     QLabel,
@@ -18,7 +20,12 @@ from core.runtime_compat_presenter import summarize_runtime
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
 from core.dependency_path_presenter import summarize_dependency_path
 from core.startup_blocking_assessment import assess_startup_blocking
-from core.compatibility_report import CompatibilityReportExporter
+from core.compatibility_report import (
+    CompatibilityReportExporter,
+    diagnostic_summary,
+    format_recommended_action,
+)
+from core.diagnostic_history import DiagnosticHistoryStore
 
 
 class RuntimeCompatibilityWorker(QThread):
@@ -64,31 +71,6 @@ def _activation_text(report) -> str:
     return f"{report.risk.upper()} · " + ", ".join(labels) + suffix
 
 
-def _diagnostic_summary(export) -> str:
-    top = export.recommended_actions[0] if export.recommended_actions else None
-    path = " -> ".join(export.startup_path) if export.startup_path else "not found"
-    detected = ", ".join(export.detected_apis) or "none"
-    unsupported = ", ".join(export.unsupported_apis) or "none"
-    conditional = ", ".join(export.conditional_apis) or "none"
-    lines = [
-        "JAR RG35XX DIAGNOSTIC SUMMARY",
-        f"JAR: {export.jar_name}",
-        f"Target: {export.target}",
-        f"Runtime: {export.compatibility_score}/100 · {export.runtime_risk.upper()}",
-        f"Assessment: {export.startup_title} · {export.startup_severity.upper()}",
-        f"Detected APIs: {detected}",
-        f"Unsupported APIs: {unsupported}",
-        f"Conditional APIs: {conditional}",
-        f"Startup path: {path}",
-    ]
-    if top:
-        lines.append(
-            f"Next action: P{top['priority']} · {top['title']} · {top['detail']}"
-        )
-    lines.append(export.diagnostic_note)
-    return "\n".join(lines)
-
-
 def install_runtime_compatibility(MainWindow):
     """Attach RG35XX runtime UI without inflating the main-window controller file."""
     if getattr(MainWindow, "_runtime_compat_hook_installed", False):
@@ -105,6 +87,8 @@ def install_runtime_compatibility(MainWindow):
         self._activation_flow_report = None
         self._startup_blocking_assessment = None
         self._runtime_compat_export = None
+        self._runtime_last_report_dir = None
+        self._diagnostic_history = DiagnosticHistoryStore(max_items=10)
 
         card = QFrame()
         card.setObjectName("InnerCard")
@@ -153,21 +137,70 @@ def install_runtime_compatibility(MainWindow):
             grid.addWidget(key, row, 0)
             grid.addWidget(widget, row, 1)
 
-        button_row = len(rows) + 1
+        history_row = len(rows) + 1
+        history_label = QLabel("History:")
+        history_label.setObjectName("Muted")
+        self.runtime_history_combo = QComboBox()
+        self.runtime_history_combo.currentIndexChanged.connect(self._runtime_history_changed)
+        grid.addWidget(history_label, history_row, 0)
+        grid.addWidget(self.runtime_history_combo, history_row, 1)
+
         self.runtime_export_btn = QPushButton("Xuất report JSON + TXT")
         self.runtime_export_btn.setEnabled(False)
         self.runtime_export_btn.clicked.connect(self._export_runtime_compat_report)
-        grid.addWidget(self.runtime_export_btn, button_row, 0, 1, 2)
+        grid.addWidget(self.runtime_export_btn, history_row + 1, 0, 1, 2)
 
         self.runtime_copy_btn = QPushButton("Copy diagnostic summary")
         self.runtime_copy_btn.setEnabled(False)
         self.runtime_copy_btn.clicked.connect(self._copy_runtime_compat_summary)
-        grid.addWidget(self.runtime_copy_btn, button_row + 1, 0, 1, 2)
+        grid.addWidget(self.runtime_copy_btn, history_row + 2, 0, 1, 2)
+
+        self.runtime_open_folder_btn = QPushButton("Open report folder")
+        self.runtime_open_folder_btn.setEnabled(False)
+        self.runtime_open_folder_btn.clicked.connect(self._open_runtime_report_folder)
+        grid.addWidget(self.runtime_open_folder_btn, history_row + 3, 0, 1, 2)
 
         self.runtime_compat_card = card
         right_layout = self.right_panel.layout()
         insert_at = max(0, right_layout.count() - 2)
         right_layout.insertWidget(insert_at, card)
+        self._runtime_history_refresh()
+
+    def _runtime_history_refresh(self):
+        combo = self.runtime_history_combo
+        combo.blockSignals(True)
+        combo.clear()
+        entries = self._diagnostic_history.load()
+        if not entries:
+            combo.addItem("Chưa có report đã export", None)
+            combo.setEnabled(False)
+            if self._runtime_last_report_dir is None:
+                self.runtime_open_folder_btn.setEnabled(False)
+        else:
+            combo.setEnabled(True)
+            for entry in entries:
+                stamp = entry.generated_at_utc.replace("T", " ")[:19] or "unknown time"
+                label = (
+                    f"{entry.jar_name} · {entry.compatibility_score}/100 · "
+                    f"{entry.startup_severity.upper()} · {stamp}"
+                )
+                combo.addItem(label, entry)
+            if self._runtime_last_report_dir is None:
+                first = entries[0]
+                self._runtime_last_report_dir = Path(first.json_path).parent
+            self.runtime_open_folder_btn.setEnabled(True)
+        combo.blockSignals(False)
+
+    def _runtime_history_changed(self, index):
+        entry = self.runtime_history_combo.itemData(index)
+        if entry is None:
+            return
+        self._runtime_last_report_dir = Path(entry.json_path).parent
+        self.runtime_open_folder_btn.setEnabled(True)
+        self.statusBar().showMessage(
+            f"History: {entry.jar_name} · {entry.startup_title} · {entry.next_action}",
+            7000,
+        )
 
     def _runtime_compat_set_pending(self):
         self.runtime_export_btn.setEnabled(False)
@@ -228,13 +261,10 @@ def install_runtime_compatibility(MainWindow):
             assessment.title + ((" · " + reason_preview) if reason_preview else "")
         )
 
-        if export.recommended_actions:
-            top = export.recommended_actions[0]
-            self.runtime_next_action_value.setText(
-                f"P{top['priority']} · {top['title']} · {top['detail']}"
-            )
-        else:
-            self.runtime_next_action_value.setText("Chưa có action ưu tiên")
+        top = export.recommended_actions[0] if export.recommended_actions else None
+        self.runtime_next_action_value.setText(
+            format_recommended_action(top) or "Chưa có action ưu tiên"
+        )
 
         level = (summary.risk or "low").lower()
         if level == "high":
@@ -290,6 +320,10 @@ def install_runtime_compatibility(MainWindow):
             return
         try:
             json_path, txt_path = CompatibilityReportExporter().write_pair(selected, export)
+            self._diagnostic_history.add(export, json_path, txt_path)
+            self._runtime_last_report_dir = json_path.parent
+            self._runtime_history_refresh()
+            self.runtime_open_folder_btn.setEnabled(True)
             self.statusBar().showMessage(
                 f"Đã xuất report: {json_path.name} + {txt_path.name}", 9000
             )
@@ -300,8 +334,18 @@ def install_runtime_compatibility(MainWindow):
         export = getattr(self, "_runtime_compat_export", None)
         if export is None:
             return
-        QApplication.clipboard().setText(_diagnostic_summary(export))
+        QApplication.clipboard().setText(diagnostic_summary(export))
         self.statusBar().showMessage("Đã copy diagnostic summary vào clipboard", 6000)
+
+    def _open_runtime_report_folder(self):
+        folder = self._runtime_last_report_dir
+        if folder is None:
+            entry = self.runtime_history_combo.currentData()
+            if entry is not None:
+                folder = Path(entry.json_path).parent
+        if folder is None:
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(folder).resolve())))
 
     def _runtime_compat_failed(self, message):
         self.runtime_export_btn.setEnabled(False)
@@ -331,6 +375,9 @@ def install_runtime_compatibility(MainWindow):
     MainWindow._runtime_compat_done = _runtime_compat_done
     MainWindow._runtime_compat_failed = _runtime_compat_failed
     MainWindow._runtime_compat_release = _runtime_compat_release
+    MainWindow._runtime_history_refresh = _runtime_history_refresh
+    MainWindow._runtime_history_changed = _runtime_history_changed
     MainWindow._export_runtime_compat_report = _export_runtime_compat_report
     MainWindow._copy_runtime_compat_summary = _copy_runtime_compat_summary
+    MainWindow._open_runtime_report_folder = _open_runtime_report_folder
     return MainWindow
