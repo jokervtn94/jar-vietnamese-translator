@@ -1,9 +1,9 @@
-
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
 import re, zipfile
 from core.glyph_analyzer import GlyphAnalyzer
+from core.runtime_api_analyzer import RuntimeApiAnalyzer, RuntimeApiReport
 
 VIETNAMESE_CHARS = set(
     "ăâđêôơưĂÂĐÊÔƠƯ"
@@ -34,16 +34,25 @@ class CompatibilityFinding:
 class CompatibilityReport:
     encoding_risk: str = "unknown"
     font_risk: str = "unknown"
+    runtime_risk: str = "unknown"
+    compatibility_score: int = 100
+    midp_profile: str = "unknown"
+    cldc_configuration: str = "unknown"
     unicode_evidence: int = 0
     custom_font_evidence: int = 0
     findings: List[CompatibilityFinding] = field(default_factory=list)
     font_candidates: List[str] = field(default_factory=list)
     suspicious_images: List[str] = field(default_factory=list)
+    runtime: RuntimeApiReport = field(default_factory=RuntimeApiReport)
 
     @property
     def overall_risk(self):
         ranks={"low":0,"medium":1,"high":2,"unknown":1}
-        r=max(ranks.get(self.encoding_risk,1),ranks.get(self.font_risk,1))
+        r=max(
+            ranks.get(self.encoding_risk,1),
+            ranks.get(self.font_risk,1),
+            ranks.get(self.runtime_risk,1),
+        )
         return ["low","medium","high"][r]
 
 class CompatibilityAnalyzer:
@@ -52,7 +61,6 @@ class CompatibilityAnalyzer:
         entries=[]
         with zipfile.ZipFile(jar_path,"r") as z:
             entries=[i.filename for i in z.infolist() if not i.is_dir()]
-            # Font candidates by extension/name
             for name in entries:
                 low=name.lower()
                 ext=Path(name).suffix.lower()
@@ -64,7 +72,6 @@ class CompatibilityAnalyzer:
                     report.suspicious_images.append(name)
                     report.custom_font_evidence += 2
 
-            # Inspect small textual resources for charset/font mapping hints
             for name in entries:
                 ext=Path(name).suffix.lower()
                 if ext not in {".txt",".properties",".xml",".ini",".cfg",".json",".csv",".lang",".lng",".dat",".bin",".res"}:
@@ -85,7 +92,6 @@ class CompatibilityAnalyzer:
                         )
                         break
 
-        # Analyze translations actually entered
         translated_text=[]
         if result is not None and project is not None:
             for _,s in result.all_strings():
@@ -110,7 +116,6 @@ class CompatibilityAnalyzer:
                         CompatibilityFinding("encoding","high",source,f"Vietnamese translation cannot be encoded as {enc}.")
                     )
 
-        # Encoding risk heuristic
         if encoding_failures:
             report.encoding_risk="high"
         elif report.unicode_evidence > 0:
@@ -124,7 +129,6 @@ class CompatibilityAnalyzer:
         else:
             report.encoding_risk="unknown"
 
-        # Font risk heuristic
         if report.custom_font_evidence >= 3:
             report.font_risk="high" if uses_vietnamese else "medium"
             report.findings.append(
@@ -150,7 +154,6 @@ class CompatibilityAnalyzer:
                     "Vietnamese diacritics are present in the translation set; missing glyphs can appear as boxes/blanks.")
             )
 
-        # V3.5: parse actual glyph maps when available
         try:
             glyph_report = GlyphAnalyzer().analyze(jar_path, result, project)
             if glyph_report.maps:
@@ -172,5 +175,28 @@ class CompatibilityAnalyzer:
                 )
         except Exception:
             pass
+
+        try:
+            runtime = RuntimeApiAnalyzer().analyze(jar_path)
+            report.runtime = runtime
+            report.runtime_risk = runtime.runtime_risk
+            report.compatibility_score = runtime.compatibility_score
+            report.midp_profile = runtime.midp_profile
+            report.cldc_configuration = runtime.cldc_configuration
+            report.findings.append(
+                CompatibilityFinding(
+                    "runtime", "low", "MANIFEST.MF",
+                    f"Target profile: {runtime.midp_profile}; configuration: {runtime.cldc_configuration}; runtime score: {runtime.compatibility_score}/100."
+                )
+            )
+            for item in runtime.findings:
+                report.findings.append(
+                    CompatibilityFinding(item.api, item.severity, item.source, item.message)
+                )
+        except Exception as e:
+            report.runtime_risk = "unknown"
+            report.findings.append(
+                CompatibilityFinding("runtime", "medium", "JAR", f"Runtime API scan could not complete: {e}")
+            )
 
         return report
