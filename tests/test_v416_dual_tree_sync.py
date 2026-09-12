@@ -19,6 +19,7 @@ MIRRORED_MODULES = (
     "core/class_dependency_inspector.py",
     "core/dependency_path_presenter.py",
     "core/startup_blocking_assessment.py",
+    "core/compatibility_report.py",
     "gui/runtime_compat_hook.py",
     "gui/task_progress_dialog.py",
 )
