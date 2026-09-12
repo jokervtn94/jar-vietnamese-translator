@@ -12,7 +12,7 @@ class BuildTaskDialog(QDialog):
     TASKS = [
         ("preflight", "Kiểm tra điều kiện build"),
         ("glyph", "Kiểm tra font / glyph"),
-        ("compat", "Kiểm tra tương thích"),
+        ("compat", "FreeJ2ME / RG35XX · API / WMA"),
         ("prepare", "Chuẩn bị bản dịch và file tạm"),
         ("patch", "Patch class / resource / binary"),
         ("validate", "Kiểm tra ZIP / CRC / class"),
@@ -24,8 +24,8 @@ class BuildTaskDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Tiến trình Build JAR")
         self.setModal(False)
-        self.resize(720, 560)
-        self.setMinimumSize(620, 480)
+        self.resize(720, 590)
+        self.setMinimumSize(620, 500)
         self._started = time.monotonic()
         self._progress = 0
         self._finished = False
@@ -41,6 +41,20 @@ class BuildTaskDialog(QDialog):
         self.stage_label = QLabel("Đang chuẩn bị…")
         self.stage_label.setObjectName("Muted")
         root.addWidget(self.stage_label)
+
+        runtime_card = QFrame()
+        runtime_card.setObjectName("InnerCard")
+        runtime_layout = QVBoxLayout(runtime_card)
+        runtime_layout.setContentsMargins(10, 8, 10, 8)
+        runtime_layout.setSpacing(3)
+        runtime_title = QLabel("Target runtime: FreeJ2ME / RG35XX")
+        runtime_title.setObjectName("PanelTitle")
+        self.runtime_detail = QLabel("Compatibility: đang chờ phân tích API / WMA…")
+        self.runtime_detail.setObjectName("Muted")
+        self.runtime_detail.setWordWrap(True)
+        runtime_layout.addWidget(runtime_title)
+        runtime_layout.addWidget(self.runtime_detail)
+        root.addWidget(runtime_card)
 
         self.progress = QProgressBar()
         self.progress.setRange(0, 100)
@@ -149,6 +163,17 @@ class BuildTaskDialog(QDialog):
             item.setToolTip(0, detail)
             item.setToolTip(1, detail)
 
+    def set_runtime_summary(self, text, level="info"):
+        self.runtime_detail.setText(text or "Compatibility: chưa có dữ liệu")
+        if level == "warning":
+            self.runtime_detail.setStyleSheet("color:#D97706; font-weight:600;")
+        elif level == "error":
+            self.runtime_detail.setStyleSheet("color:#DC2626; font-weight:600;")
+        elif level == "success":
+            self.runtime_detail.setStyleSheet("color:#059669; font-weight:600;")
+        else:
+            self.runtime_detail.setStyleSheet("")
+
     def update_progress(self, percent, stage_key, message, level="info"):
         percent = max(self._progress, min(100, int(percent)))
         self._progress = percent
@@ -157,6 +182,8 @@ class BuildTaskDialog(QDialog):
         self.stage_label.setText(message)
         if stage_key:
             self.set_task(stage_key, "running")
+        if stage_key == "compat" and message:
+            self.set_runtime_summary(message, level)
         if message:
             self.append_log(message, level)
 
