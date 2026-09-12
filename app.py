@@ -1,9 +1,9 @@
-import sys
-from PySide6.QtWidgets import QApplication
-from gui.main_window import MainWindow
+"""Development-compatible entry point.
+
+Portable releases use launcher.py. Keeping app.py allows existing developer scripts/tests
+to continue working without changing the engine/UI contract.
+"""
+from launcher import main
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    raise SystemExit(main())

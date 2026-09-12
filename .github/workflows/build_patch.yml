@@ -1,0 +1,46 @@
+name: Build Modular Patch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'config/**'
+      - 'assets/**'
+      - 'tools/create_patch.py'
+      - '.github/workflows/build_patch.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile modular source
+        run: python -m compileall -q app
+      - name: Run regression tests
+        run: python -m pytest -q
+      - name: Build path-only patch
+        shell: bash
+        run: |
+          BASE="${{ github.event.before }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then BASE="HEAD^"; fi
+          PATCH_ID="patch-${GITHUB_SHA::8}"
+          python tools/create_patch.py --base "$BASE" --head HEAD --patch-id "$PATCH_ID" --output JAR_Vietnamese_Translator_PATCH.zip
+          sha256sum JAR_Vietnamese_Translator_PATCH.zip > JAR_Vietnamese_Translator_PATCH.sha256
+      - name: Upload patch artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JAR_Vietnamese_Translator_PATCH
+          path: |
+            JAR_Vietnamese_Translator_PATCH.zip
+            JAR_Vietnamese_Translator_PATCH.sha256
+          retention-days: 30

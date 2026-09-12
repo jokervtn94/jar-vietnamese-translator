@@ -5,7 +5,7 @@ from PyInstaller.utils.hooks import collect_all
 datas, binaries, hiddenimports = collect_all('PySide6')
 
 a = Analysis(
-    ['app.py'],
+    ['launcher.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
