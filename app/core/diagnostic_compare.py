@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, List
+import json
 
 
 @dataclass
@@ -20,6 +22,13 @@ class DiagnosticComparison:
     next_action_changed: bool = False
     left_next_action: str = ""
     right_next_action: str = ""
+
+
+def load_report(path: str | Path) -> dict:
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Compatibility report JSON must contain an object")
+    return data
 
 
 def _value(report: Any, name: str, default=None):
