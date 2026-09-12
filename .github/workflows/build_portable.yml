@@ -10,6 +10,7 @@ on:
       - 'JAR_Translator.spec'
       - 'app/core/version.py'
       - 'app/gui/cumulative_ui_polish_hook.py'
+      - 'app/gui/latest_translation_ui_hook.py'
       - 'config/modules.json'
       - 'config/integrated_patches.json'
       - '.github/workflows/build_portable.yml'
@@ -78,6 +79,7 @@ jobs:
             "$root/app/gui/main_window.py",
             "$root/app/gui/patch_update_hook.py",
             "$root/app/gui/cumulative_ui_polish_hook.py",
+            "$root/app/gui/latest_translation_ui_hook.py",
             "$root/app/themes/monokai_light.qss",
             "$root/config/modules.json",
             "$root/config/integrated_patches.json"
@@ -86,7 +88,7 @@ jobs:
           $modules = Get-Content "$root/config/modules.json" -Raw | ConvertFrom-Json
           if ($modules.app_version -ne '4.31-cumulative') { throw "Unexpected app_version: $($modules.app_version)" }
           $patches = Get-Content "$root/config/integrated_patches.json" -Raw | ConvertFrom-Json
-          if ($patches.patch_level -ne 'v431') { throw "Unexpected patch level: $($patches.patch_level)" }
+          if ($patches.patch_level -ne 'v434') { throw "Unexpected patch level: $($patches.patch_level)" }
 
       - name: Package portable ZIP
         shell: pwsh
@@ -101,7 +103,8 @@ jobs:
           Khong can cai Python.
           Chay: JAR Vietnamese Translator.exe
 
-          Baseline nay da tich hop cac patch hoan chinh den patch level v431.
+          Baseline nay da tich hop cac patch hoan chinh den patch level v434.
+          Bao gom giao dien dich moi nhat: icon file/danh muc, thong tin chuoi da sua bo cuc, va da xoa goi y dich.
           Danh sach patch tich hop: config/integrated_patches.json
 
           Quan trong:
