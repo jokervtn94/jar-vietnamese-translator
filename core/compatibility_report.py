@@ -47,6 +47,42 @@ class CompatibilityExport:
     diagnostic_note: str = "Read-only diagnostic output; no external transport or application state changes are performed."
 
 
+def _action_value(action, name: str, default=""):
+    if isinstance(action, dict):
+        return action.get(name, default)
+    return getattr(action, name, default)
+
+
+def format_recommended_action(action) -> str:
+    if action is None:
+        return ""
+    priority = _action_value(action, "priority", 4)
+    title = _action_value(action, "title", "")
+    detail = _action_value(action, "detail", "")
+    text = f"P{priority} · {title}".rstrip()
+    return text + ((" · " + detail) if detail else "")
+
+
+def diagnostic_summary(report: CompatibilityExport) -> str:
+    top = report.recommended_actions[0] if report.recommended_actions else None
+    path = " -> ".join(report.startup_path) if report.startup_path else "not found"
+    lines = [
+        "JAR RG35XX DIAGNOSTIC SUMMARY",
+        f"JAR: {report.jar_name}",
+        f"Target: {report.target}",
+        f"Runtime: {report.compatibility_score}/100 · {report.runtime_risk.upper()}",
+        f"Assessment: {report.startup_title} · {report.startup_severity.upper()}",
+        f"Detected APIs: {', '.join(report.detected_apis) or 'none'}",
+        f"Unsupported APIs: {', '.join(report.unsupported_apis) or 'none'}",
+        f"Conditional APIs: {', '.join(report.conditional_apis) or 'none'}",
+        f"Startup path: {path}",
+    ]
+    if top is not None:
+        lines.append("Next action: " + format_recommended_action(top))
+    lines.append(report.diagnostic_note)
+    return "\n".join(lines)
+
+
 class CompatibilityReportExporter:
     @staticmethod
     def _recommended_actions(runtime_report, flow_report, startup_path: List[str]) -> List[RecommendedAction]:
@@ -162,8 +198,7 @@ class CompatibilityReportExporter:
             "RECOMMENDED ACTIONS",
         ]
         for action in report.recommended_actions:
-            lines.append(f"P{action.priority} · {action.title}")
-            lines.append(f"  {action.detail}")
+            lines.append(format_recommended_action(action))
         lines.extend(["", report.diagnostic_note, ""])
         return "\n".join(lines)
 
