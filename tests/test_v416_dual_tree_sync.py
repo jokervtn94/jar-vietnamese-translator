@@ -33,6 +33,7 @@ MIRRORED_MODULES = (
     "gui/diagnostic_compare_hook.py",
     "gui/runtime_log_hook.py",
     "gui/diagnostic_bundle_inspector_hook.py",
+    "gui/diagnostics_workspace_hook.py",
     "gui/task_progress_dialog.py",
 )
 
