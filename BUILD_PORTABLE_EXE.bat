@@ -1,90 +1,47 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Build JAR Vietnamese Translator Portable
+title Build JAR Vietnamese Translator Modular Portable
 
-echo ===============================================
-echo  JAR Vietnamese Translator - Portable EXE
-echo ===============================================
-echo.
-
-if not exist "app.py" (
-    echo [ERROR] Khong tim thay app.py.
+if not exist "launcher.py" (
+    echo [ERROR] Khong tim thay launcher.py.
     pause
     exit /b 1
 )
 
-if exist ".venv\Scripts\python.exe" goto HAVEVENV
-
-where py >nul 2>nul
-if %errorlevel%==0 (
-    set "PY=py"
-) else (
-    where python >nul 2>nul
-    if errorlevel 1 goto NOPYTHON
-    set "PY=python"
-)
-
-echo [1/5] Tao moi truong Python...
-%PY% -m venv .venv
+where py >nul 2>nul && (set "PY=py") || (set "PY=python")
+if not exist ".venv\Scripts\python.exe" %PY% -m venv .venv
 if errorlevel 1 goto BUILDERROR
 
-:HAVEVENV
-echo [2/5] Cap nhat pip...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip
+".venv\Scripts\python.exe" -m pip install -r requirements.txt pyinstaller
 if errorlevel 1 goto BUILDERROR
 
-echo [3/5] Cai dependencies...
-if exist "requirements.txt" (
-    ".venv\Scripts\python.exe" -m pip install -r requirements.txt
-    if errorlevel 1 goto BUILDERROR
-)
-
-echo [4/5] Cai PyInstaller...
-".venv\Scripts\python.exe" -m pip install pyinstaller
-if errorlevel 1 goto BUILDERROR
-
-echo [5/5] Build portable EXE...
 if exist "build" rmdir /s /q "build"
 if exist "dist\JAR Vietnamese Translator" rmdir /s /q "dist\JAR Vietnamese Translator"
 
-".venv\Scripts\python.exe" -m PyInstaller ^
-    --noconfirm ^
-    --clean ^
-    --windowed ^
-    --name "JAR Vietnamese Translator" ^
-    --collect-all PySide6 ^
-    "app.py"
-
+".venv\Scripts\python.exe" -m PyInstaller --noconfirm --clean JAR_Translator.spec
 if errorlevel 1 goto BUILDERROR
 
+xcopy /E /I /Y "app" "dist\JAR Vietnamese Translator\app" >nul
+xcopy /E /I /Y "config" "dist\JAR Vietnamese Translator\config" >nul
+if exist "assets" xcopy /E /I /Y "assets" "dist\JAR Vietnamese Translator\assets" >nul
+if not exist "dist\JAR Vietnamese Translator\updates" mkdir "dist\JAR Vietnamese Translator\updates"
+if not exist "dist\JAR Vietnamese Translator\logs" mkdir "dist\JAR Vietnamese Translator\logs"
+
 echo.
 echo ===============================================
-echo BUILD THANH CONG
+echo BUILD MODULAR THANH CONG
 echo ===============================================
-echo File chay:
-echo %CD%\dist\JAR Vietnamese Translator\JAR Vietnamese Translator.exe
+echo Runtime: dist\JAR Vietnamese Translator\JAR Vietnamese Translator.exe
+echo Code:    dist\JAR Vietnamese Translator\app\
+echo Config:  dist\JAR Vietnamese Translator\config\
 echo.
-echo Thu muc "dist\JAR Vietnamese Translator" la ban Portable.
-echo Co the copy nguyen thu muc nay sang PC Windows khac.
-echo.
-start "" "%CD%\dist\JAR Vietnamese Translator\JAR Vietnamese Translator.exe"
+echo Tu lan sau, neu chi sua app\ hoac theme thi KHONG can build lai runtime.
 pause
 exit /b 0
 
-:NOPYTHON
-echo.
-echo [ERROR] Chua co Python 3.10+ tren may.
-echo Cai Python, danh dau "Add Python to PATH",
-echo sau do double-click BUILD_PORTABLE_EXE.bat lai.
-echo.
-pause
-exit /b 1
-
 :BUILDERROR
-echo.
 echo [ERROR] Build that bai.
-echo Kiem tra Python va ket noi Internet roi chay lai.
-echo.
 pause
 exit /b 1

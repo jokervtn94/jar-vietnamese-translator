@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "app_version": "1.0.0-modular",
+  "modules": {
+    "runtime": {"version": "1.0.0", "path": "runtime", "kind": "runtime", "restart_required": true},
+    "core": {"version": "1.0.0", "path": "app/core", "kind": "engine", "restart_required": true},
+    "scanner": {"version": "1.0.0", "path": "app/features/scan", "kind": "feature", "restart_required": true},
+    "builder": {"version": "1.0.0", "path": "app/features/build", "kind": "feature", "restart_required": true},
+    "json_exchange": {"version": "1.0.0", "path": "app/features/json_exchange", "kind": "feature", "restart_required": true},
+    "validation": {"version": "1.0.0", "path": "app/features/validation", "kind": "feature", "restart_required": true},
+    "ui": {"version": "1.0.0", "path": "app/gui", "kind": "ui", "restart_required": true},
+    "theme": {"version": "1.0.0", "path": "app/themes", "kind": "theme", "restart_required": true},
+    "updater": {"version": "1.0.0", "path": "app/services/patch_updater.py", "kind": "service", "restart_required": true}
+  }
+}

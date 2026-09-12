@@ -1,15 +1,11 @@
-name: Build Windows Portable
+name: Build Modular Windows Portable
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'app.py'
-      - 'gui/**'
-      - 'core/**'
-      - 'models/**'
-      - 'exporters/**'
+      - 'launcher.py'
       - 'requirements.txt'
       - 'JAR_Translator.spec'
       - '.github/workflows/build_portable.yml'
@@ -49,48 +45,65 @@ jobs:
         shell: pwsh
         run: python -m pytest -q
 
-      - name: Build portable app
+      - name: Build stable runtime launcher
         shell: pwsh
         run: |
           if (Test-Path build) { Remove-Item build -Recurse -Force }
           if (Test-Path dist) { Remove-Item dist -Recurse -Force }
           python -m PyInstaller --noconfirm --clean JAR_Translator.spec
 
-      - name: Verify portable output
+      - name: Add external modular app
         shell: pwsh
         run: |
-          $exe = 'dist/JAR Vietnamese Translator/JAR Vietnamese Translator.exe'
-          if (!(Test-Path $exe)) { throw "Portable executable was not created: $exe" }
-          Get-Item $exe | Format-List Name,Length,LastWriteTime
+          $root = 'dist/JAR Vietnamese Translator'
+          Copy-Item 'app' "$root/app" -Recurse
+          Copy-Item 'config' "$root/config" -Recurse
+          if (Test-Path 'assets') { Copy-Item 'assets' "$root/assets" -Recurse }
+          New-Item -ItemType Directory -Force -Path "$root/updates" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$root/logs" | Out-Null
+
+      - name: Verify modular portable layout
+        shell: pwsh
+        run: |
+          $root = 'dist/JAR Vietnamese Translator'
+          @(
+            "$root/JAR Vietnamese Translator.exe",
+            "$root/app/bootstrap.py",
+            "$root/app/core/jar_scanner.py",
+            "$root/app/gui/main_window.py",
+            "$root/app/themes/monokai_light.qss",
+            "$root/config/modules.json"
+          ) | ForEach-Object { if (!(Test-Path $_)) { throw "Missing modular file: $_" } }
 
       - name: Package portable ZIP
         shell: pwsh
         run: |
           $portable = 'JAR Vietnamese Translator Portable'
           if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
-          New-Item -ItemType Directory -Path $portable | Out-Null
-          Copy-Item 'dist/JAR Vietnamese Translator/*' $portable -Recurse
+          Copy-Item 'dist/JAR Vietnamese Translator' $portable -Recurse
           @'
-          JAR Vietnamese Translator - Windows Portable
+          JAR Vietnamese Translator - Modular Windows Portable
 
           Khong can cai Python.
-          1. Giai nen toan bo file ZIP.
-          2. Chay "JAR Vietnamese Translator.exe".
-          3. Khong xoa cac file/thu muc nam canh file EXE.
+          Chay: JAR Vietnamese Translator.exe
 
-          Build nay duoc tao tu source tren GitHub Actions va da chay regression tests truoc khi dong goi.
+          Quan trong:
+          - Runtime nam canh EXE va chi can build lai khi runtime/launcher thay doi.
+          - Code chuc nang nam trong app/.
+          - Theme nam trong app/themes/.
+          - Patch nho co the thay dung file trong app/ ma khong build lai runtime.
           '@ | Set-Content -Encoding UTF8 "$portable/README_PORTABLE.txt"
-          $zip = 'JAR_Vietnamese_Translator_Windows_Portable.zip'
+          $zip = 'JAR_Vietnamese_Translator_Modular_Windows_Portable.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path "$portable/*" -DestinationPath $zip -CompressionLevel Optimal
-          (Get-FileHash $zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii 'JAR_Vietnamese_Translator_Windows_Portable.sha256'
+          (Get-FileHash $zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii 'JAR_Vietnamese_Translator_Modular_Windows_Portable.sha256'
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JAR_Vietnamese_Translator_Windows_Portable
+          name: JAR_Vietnamese_Translator_Modular_Windows_Portable
           path: |
-            JAR_Vietnamese_Translator_Windows_Portable.zip
-            JAR_Vietnamese_Translator_Windows_Portable.sha256
+            JAR_Vietnamese_Translator_Modular_Windows_Portable.zip
+            JAR_Vietnamese_Translator_Modular_Windows_Portable.sha256
           if-no-files-found: error
           retention-days: 30

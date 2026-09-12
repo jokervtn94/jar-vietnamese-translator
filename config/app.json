@@ -1,0 +1,7 @@
+{
+  "name": "JAR Vietnamese Translator",
+  "portable_layout": "modular-v1",
+  "entrypoint": "app/bootstrap.py",
+  "patch_format": "jvt-patch-v1",
+  "theme": "app/themes/monokai_light.qss"
+}
