@@ -5,10 +5,11 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel
 
 from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.runtime_compat_presenter import summarize_runtime
+from core.activation_flow_analyzer import ActivationFlowAnalyzer
 
 
 class RuntimeCompatibilityWorker(QThread):
-    completed = Signal(object, object)
+    completed = Signal(object, object, object)
     failed = Signal(str)
 
     def __init__(self, jar_path, result, project):
@@ -22,7 +23,8 @@ class RuntimeCompatibilityWorker(QThread):
             report = CompatibilityAnalyzer().analyze(
                 self.jar_path, self.result, self.project
             )
-            self.completed.emit(report, summarize_runtime(report.runtime))
+            activation = ActivationFlowAnalyzer().analyze(self.jar_path)
+            self.completed.emit(report, summarize_runtime(report.runtime), activation)
         except Exception as exc:
             self.failed.emit(str(exc))
 
@@ -33,6 +35,20 @@ def _risk_text(risk: str) -> str:
         "medium": "MEDIUM · cần kiểm thử",
         "high": "HIGH · có API rủi ro",
     }.get((risk or "unknown").lower(), str(risk or "UNKNOWN").upper())
+
+
+def _activation_text(report) -> str:
+    labels = []
+    if report.likely_activation_gate:
+        labels.append("activation gate")
+    if report.likely_payment_flow:
+        labels.append("payment/subscription")
+    if report.wma_linked:
+        labels.append("liên kết WMA/SMS")
+    if not labels:
+        return "Không thấy flow kích hoạt/thanh toán mạnh"
+    suffix = f" · {len(report.suspicious_classes)} class nghi vấn" if report.suspicious_classes else ""
+    return f"{report.risk.upper()} · " + ", ".join(labels) + suffix
 
 
 def install_runtime_compatibility(MainWindow):
@@ -48,6 +64,7 @@ def install_runtime_compatibility(MainWindow):
         original_init(self, *args, **kwargs)
         self._runtime_compat_worker = None
         self._runtime_compat_report = None
+        self._activation_flow_report = None
 
         card = QFrame()
         card.setObjectName("InnerCard")
@@ -65,8 +82,10 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_risk_value = QLabel("Chưa phân tích")
         self.runtime_api_value = QLabel("—")
         self.runtime_wma_value = QLabel("—")
+        self.runtime_activation_value = QLabel("—")
         self.runtime_api_value.setWordWrap(True)
         self.runtime_wma_value.setWordWrap(True)
+        self.runtime_activation_value.setWordWrap(True)
 
         rows = [
             ("Target:", self.runtime_target_value),
@@ -74,6 +93,7 @@ def install_runtime_compatibility(MainWindow):
             ("Risk:", self.runtime_risk_value),
             ("API:", self.runtime_api_value),
             ("WMA/SMS:", self.runtime_wma_value),
+            ("Activation:", self.runtime_activation_value),
         ]
         for row, (label, widget) in enumerate(rows, start=1):
             key = QLabel(label)
@@ -91,6 +111,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_risk_value.setText("Đang phân tích")
         self.runtime_api_value.setText("Đang quét bytecode / optional API…")
         self.runtime_wma_value.setText("Đang kiểm tra WMA / SMS…")
+        self.runtime_activation_value.setText("Đang kiểm tra activation/payment flow…")
 
     def _runtime_compat_start(self):
         if not self.result:
@@ -108,8 +129,9 @@ def install_runtime_compatibility(MainWindow):
         worker.finished.connect(lambda w=worker: self._runtime_compat_release(w))
         worker.start()
 
-    def _runtime_compat_done(self, report, summary):
+    def _runtime_compat_done(self, report, summary, activation):
         self._runtime_compat_report = report
+        self._activation_flow_report = activation
         self.runtime_target_value.setText(summary.target)
         self.runtime_score_value.setText(f"{summary.score}/100")
         self.runtime_risk_value.setText(_risk_text(summary.risk))
@@ -125,6 +147,8 @@ def install_runtime_compatibility(MainWindow):
         else:
             self.runtime_wma_value.setText("Không phát hiện")
 
+        self.runtime_activation_value.setText(_activation_text(activation))
+
         level = (summary.risk or "low").lower()
         if level == "high":
             self.runtime_risk_value.setStyleSheet("color:#DC2626; font-weight:700;")
@@ -133,9 +157,18 @@ def install_runtime_compatibility(MainWindow):
         else:
             self.runtime_risk_value.setStyleSheet("color:#059669; font-weight:700;")
 
+        activation_level = (activation.risk or "low").lower()
+        if activation_level == "high":
+            self.runtime_activation_value.setStyleSheet("color:#DC2626; font-weight:700;")
+        elif activation_level == "medium":
+            self.runtime_activation_value.setStyleSheet("color:#D97706; font-weight:600;")
+        else:
+            self.runtime_activation_value.setStyleSheet("color:#059669;")
+
         self.statusBar().showMessage(
             f"RG35XX compatibility: {summary.score}/100 · {summary.risk.upper()}"
-            + (" · WMA/SMS detected" if summary.uses_wma_sms else ""),
+            + (" · WMA/SMS detected" if summary.uses_wma_sms else "")
+            + (" · activation/payment flow suspected" if activation.risk != "low" else ""),
             8000,
         )
 
@@ -144,6 +177,7 @@ def install_runtime_compatibility(MainWindow):
         self.runtime_risk_value.setText("Không phân tích được")
         self.runtime_api_value.setText(message)
         self.runtime_wma_value.setText("—")
+        self.runtime_activation_value.setText("—")
 
     def _runtime_compat_release(self, worker):
         if getattr(self, "_runtime_compat_worker", None) is worker:
