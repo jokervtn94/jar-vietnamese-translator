@@ -86,5 +86,6 @@ def test_runtime_log_ui_contract_is_present_without_importing_qt():
     for text in (source, portable):
         assert 'QLabel("Runtime Log Diagnostic")' in text
         assert 'QPushButton("Open log file")' in text
-        assert "correlate_runtime_log(load_log(selected), report)" in text
+        assert "log_text = load_log(selected)" in text
+        assert "correlate_runtime_log(log_text, report)" in text
         assert "_runtime_compat_export" in text
