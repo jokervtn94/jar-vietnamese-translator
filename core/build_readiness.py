@@ -23,6 +23,9 @@ class BuildReadinessReport:
     binary_safe: int = 0
     binary_unsafe: int = 0
     compatibility_risk: str = "unknown"
+    runtime_risk: str = "unknown"
+    runtime_score: int = 100
+    target_profile: str = "FreeJ2ME / RG35XX"
     glyph_risk: str = "unknown"
     issues: List[ReadinessIssue] = field(default_factory=list)
 
@@ -75,23 +78,58 @@ class BuildReadinessAnalyzer:
                 f"{r.binary_safe} binary strings have recognized framing."
             ))
 
-        # Encoding / font compatibility
+        # Encoding / font / runtime compatibility
         compat=CompatibilityAnalyzer().analyze(result.jar_path,result,project)
         r.compatibility_risk=compat.overall_risk
+        r.runtime_risk=getattr(compat,"runtime_risk","unknown")
+        r.runtime_score=int(getattr(compat,"compatibility_score",100))
+        runtime=getattr(compat,"runtime",None)
+        target=getattr(runtime,"rg35xx",None) if runtime is not None else None
+
         if compat.overall_risk == "high":
             r.issues.append(ReadinessIssue(
                 "WARNING","compatibility","JAR",
-                "Encoding/font compatibility risk is HIGH."
+                "Overall compatibility risk is HIGH (encoding, font, or runtime dependency)."
             ))
         elif compat.overall_risk == "medium":
             r.issues.append(ReadinessIssue(
                 "WARNING","compatibility","JAR",
-                "Encoding/font compatibility risk is MEDIUM."
+                "Overall compatibility risk is MEDIUM (encoding, font, or runtime dependency)."
             ))
         else:
             r.issues.append(ReadinessIssue(
                 "INFO","compatibility","JAR",
-                f"Encoding/font compatibility risk is {compat.overall_risk.upper()}."
+                f"Overall compatibility risk is {compat.overall_risk.upper()}."
+            ))
+
+        # Target-specific FreeJ2ME / RG35XX readiness. Keep this diagnostic-first:
+        # never send real SMS and never mark blocked WMA transport as activation success.
+        if target is not None:
+            r.runtime_score=int(getattr(target,"score",r.runtime_score))
+            unsupported=list(getattr(target,"unsupported",[]) or [])
+            conditional=list(getattr(target,"conditional",[]) or [])
+            if unsupported:
+                r.issues.append(ReadinessIssue(
+                    "WARNING","runtime","FreeJ2ME / RG35XX",
+                    "Unsupported API dependencies: " + ", ".join(unsupported) + "."
+                ))
+            if conditional:
+                r.issues.append(ReadinessIssue(
+                    "WARNING","runtime","FreeJ2ME / RG35XX",
+                    "Conditional API dependencies require runtime testing: " + ", ".join(conditional) + "."
+                ))
+            r.issues.append(ReadinessIssue(
+                "INFO" if not unsupported and not conditional else "WARNING",
+                "runtime","FreeJ2ME / RG35XX",
+                f"Target runtime score: {r.runtime_score}/100; risk: {getattr(target,'risk',r.runtime_risk).upper()}."
+            ))
+
+        if runtime is not None and getattr(runtime,"uses_wma_sms",False):
+            targets=list(getattr(runtime,"sms_targets",[]) or [])
+            endpoint=(" Endpoints: " + ", ".join(targets[:5]) + ".") if targets else ""
+            r.issues.append(ReadinessIssue(
+                "WARNING","wma_sms","FreeJ2ME / RG35XX",
+                "Legacy WMA/SMS dependency detected. Real SMS transport must remain disabled; blocked transport must not be treated as successful activation." + endpoint
             ))
 
         # Glyph map status
