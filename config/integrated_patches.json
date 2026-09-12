@@ -2,10 +2,10 @@
   "schema": 1,
   "baseline_name": "Cumulative Modular Baseline",
   "app_version": "4.31",
-  "patch_level": "v431",
+  "patch_level": "v434",
   "base_commit": "c74db123f33f97f88335215aeb288ed09ead984e",
-  "integrated_through": "13c0567e7e522bdafb6da552adc16491361d5dc9",
-  "commit_distance": 186,
+  "integrated_through": "d49555eabc04a3aeb147dd0aacda16b4129cd740",
+  "commit_distance": 206,
   "policy": "All completed modular patches listed here are part of the portable baseline and do not need to be reapplied to a fresh 4.31 portable build.",
   "groups": [
     {
@@ -64,6 +64,17 @@
       "title": "Integrated Update Patch UI",
       "representative_commit": "b773abc6ecd5f0d065df974997abdcd978b42eb6",
       "includes": ["Apply Update Patch UI", "SHA-256 verification", "transactional backup", "rollback", "patch history"]
+    },
+    {
+      "id": "stable-app-naming",
+      "title": "Stable app naming and separated version display",
+      "includes": ["app/window title without version suffix", "version shown only in dedicated UI metadata", "cumulative UI polish"]
+    },
+    {
+      "id": "latest-translation-ui",
+      "title": "Latest approved translation workspace restoration",
+      "representative_commit": "d49555eabc04a3aeb147dd0aacda16b4129cd740",
+      "includes": ["file/category icons in JAR Explorer", "fixed string context metadata layout", "removed translation suggestion card", "20/50/30 translation workspace preserved"]
     }
   ]
 }
