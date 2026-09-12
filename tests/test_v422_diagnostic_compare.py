@@ -3,13 +3,15 @@ from __future__ import annotations
 import json
 
 from core.diagnostic_compare import compare_reports, format_comparison, load_report
+from core.diagnostic_verdict import build_compare_verdict, format_compare_verdict
 
 
-def _report(name, score, apis, classification, path, action_title):
+def _report(name, score, apis, classification, path, action_title, unsupported=None):
     return {
         "jar_name": name,
         "compatibility_score": score,
         "detected_apis": apis,
+        "unsupported_apis": unsupported or [],
         "startup_classification": classification,
         "startup_path": path,
         "recommended_actions": [
@@ -59,6 +61,39 @@ def test_compare_reports_tracks_score_api_startup_and_action_changes():
     assert "Kiểm thử runtime" in text
 
 
+def test_compare_verdict_improved():
+    old = _report("old.jar", 60, ["wma_sms"], "likely_startup_blocker", [], "A", ["wma_sms"])
+    new = _report("new.jar", 82, [], "needs_runtime_test", [], "B", [])
+    comparison = compare_reports(old, new)
+    verdict = build_compare_verdict(comparison, old, new)
+    assert verdict.label == "IMPROVED"
+    assert "Compatibility score +22" in verdict.reasons
+    assert any("Unsupported APIs removed" in reason for reason in verdict.reasons)
+    assert any("risk reduced" in reason for reason in verdict.reasons)
+    assert "VERDICT: IMPROVED" in format_compare_verdict(verdict)
+
+
+def test_compare_verdict_regressed():
+    old = _report("old.jar", 90, [], "compatible_or_unknown", [], "A", [])
+    new = _report("new.jar", 65, ["vendor_nokia"], "likely_startup_blocker", [], "B", ["vendor_nokia"])
+    verdict = build_compare_verdict(compare_reports(old, new), old, new)
+    assert verdict.label == "REGRESSED"
+    assert any("Compatibility score -25" in reason for reason in verdict.reasons)
+    assert any("Unsupported APIs added" in reason for reason in verdict.reasons)
+    assert any("risk increased" in reason for reason in verdict.reasons)
+
+
+def test_compare_verdict_mixed_and_unchanged():
+    old = _report("old.jar", 70, [], "needs_runtime_test", [], "A", ["legacy_api"])
+    mixed_new = _report("mixed.jar", 80, ["vendor_api"], "needs_runtime_test", [], "B", ["vendor_api"])
+    mixed = build_compare_verdict(compare_reports(old, mixed_new), old, mixed_new)
+    assert mixed.label == "MIXED"
+
+    same = _report("same.jar", 70, [], "needs_runtime_test", [], "A", ["legacy_api"])
+    unchanged = build_compare_verdict(compare_reports(old, same), old, same)
+    assert unchanged.label == "UNCHANGED"
+
+
 def test_load_report_reads_exported_json(tmp_path):
     path = tmp_path / "sample.compat.json"
     payload = _report("sample.jar", 91, ["m3g"], "needs_runtime_test", [], "Runtime test")
@@ -78,5 +113,7 @@ def test_compare_hook_contract_is_present_without_importing_qt():
         assert 'QLabel("Diagnostic Compare")' in text
         assert 'QPushButton("Compare reports")' in text
         assert "compare_reports(left, right)" in text
+        assert "build_compare_verdict(comparison, left, right)" in text
+        assert "format_compare_verdict(verdict)" in text
         assert "format_comparison(comparison)" in text
         assert "load_report(left_entry.json_path)" in text
