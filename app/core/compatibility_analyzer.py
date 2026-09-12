@@ -1,9 +1,9 @@
-
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
 import re, zipfile
 from core.glyph_analyzer import GlyphAnalyzer
+from core.runtime_api_analyzer import RuntimeApiAnalyzer, RuntimeApiReport
 
 VIETNAMESE_CHARS = set(
     "ăâđêôơưĂÂĐÊÔƠƯ"
@@ -34,16 +34,25 @@ class CompatibilityFinding:
 class CompatibilityReport:
     encoding_risk: str = "unknown"
     font_risk: str = "unknown"
+    runtime_risk: str = "unknown"
+    compatibility_score: int = 100
+    midp_profile: str = "unknown"
+    cldc_configuration: str = "unknown"
     unicode_evidence: int = 0
     custom_font_evidence: int = 0
     findings: List[CompatibilityFinding] = field(default_factory=list)
     font_candidates: List[str] = field(default_factory=list)
     suspicious_images: List[str] = field(default_factory=list)
+    runtime: RuntimeApiReport = field(default_factory=RuntimeApiReport)
 
     @property
     def overall_risk(self):
         ranks={"low":0,"medium":1,"high":2,"unknown":1}
-        r=max(ranks.get(self.encoding_risk,1),ranks.get(self.font_risk,1))
+        r=max(
+            ranks.get(self.encoding_risk,1),
+            ranks.get(self.font_risk,1),
+            ranks.get(self.runtime_risk,1),
+        )
         return ["low","medium","high"][r]
 
 class CompatibilityAnalyzer:
@@ -172,5 +181,29 @@ class CompatibilityAnalyzer:
                 )
         except Exception:
             pass
+
+        # Runtime/API compatibility scan.
+        try:
+            runtime = RuntimeApiAnalyzer().analyze(jar_path)
+            report.runtime = runtime
+            report.runtime_risk = runtime.runtime_risk
+            report.compatibility_score = runtime.compatibility_score
+            report.midp_profile = runtime.midp_profile
+            report.cldc_configuration = runtime.cldc_configuration
+            report.findings.append(
+                CompatibilityFinding(
+                    "runtime", "low", "MANIFEST.MF",
+                    f"Target profile: {runtime.midp_profile}; configuration: {runtime.cldc_configuration}; runtime score: {runtime.compatibility_score}/100."
+                )
+            )
+            for item in runtime.findings:
+                report.findings.append(
+                    CompatibilityFinding(item.api, item.severity, item.source, item.message)
+                )
+        except Exception as e:
+            report.runtime_risk = "unknown"
+            report.findings.append(
+                CompatibilityFinding("runtime", "medium", "JAR", f"Runtime API scan could not complete: {e}")
+            )
 
         return report
