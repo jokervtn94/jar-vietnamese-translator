@@ -4,6 +4,7 @@ import zipfile
 
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
 from core.class_dependency_inspector import ClassDependencyInspector
+from core.dependency_path_presenter import summarize_dependency_path
 
 
 def _write_jar(path, startup_links_activation: bool):
@@ -65,3 +66,7 @@ def test_activation_flow_promotes_startup_reachable_gate(tmp_path):
     assert "statically reachable" in messages
     assert "game.MainMIDlet" in messages
     assert "game.pay.Activate" in messages
+
+    summary = summarize_dependency_path(report)
+    assert summary.startswith("Startup reachable:")
+    assert "game.MainMIDlet -> game.Manager -> game.pay.Activate" in summary
