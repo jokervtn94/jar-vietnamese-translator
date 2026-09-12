@@ -231,6 +231,7 @@ def install_diagnostics_workspace(MainWindow):
         self.diagnostics_page = diagnostics_page
         self.diagnostics_tabs = tabs
         self.diagnostics_nav_btn = diagnostics_btn
+        self.diagnostics_top_layout = top_layout
         self._show_diagnostics_page = show_diagnostics
         self._show_translation_page = show_translation
 
