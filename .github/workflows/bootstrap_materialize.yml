@@ -1,0 +1,195 @@
+name: Bootstrap latest source
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [sync-latest-20260912]
+    paths:
+      - '.github/workflows/bootstrap_materialize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: '1'
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: sync-latest-20260912
+          fetch-depth: 0
+
+      - name: Reconstruct latest source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$(ls .bootstrap/source.part* 2>/dev/null)"
+          cat .bootstrap/source.part* | tr -d '\r\n' | base64 --decode > /tmp/jar-translator-source.zip
+          unzip -t /tmp/jar-translator-source.zip
+          rm -rf /tmp/jar-translator-source
+          mkdir -p /tmp/jar-translator-source
+          unzip -q /tmp/jar-translator-source.zip -d /tmp/jar-translator-source
+          rsync -a --delete --exclude='.git/' --exclude='.bootstrap/' /tmp/jar-translator-source/ ./
+          rm -rf .bootstrap
+
+      - name: Install final CI workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .github/workflows
+          cat > .github/workflows/tests.yml <<'YML'
+          name: tests
+
+          on:
+            push:
+            pull_request:
+
+          jobs:
+            regression:
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              env:
+                QT_QPA_PLATFORM: offscreen
+                PYTHONUTF8: '1'
+              steps:
+                - uses: actions/checkout@v4
+                - uses: actions/setup-python@v5
+                  with:
+                    python-version: '3.12'
+                    cache: 'pip'
+                - name: Install dependencies
+                  run: |
+                    python -m pip install --upgrade pip
+                    python -m pip install -r requirements.txt
+                    python -m pip install pytest
+                - name: Compile Python sources
+                  run: python -m compileall -q .
+                - name: Run regression tests
+                  run: python -m pytest -q
+          YML
+
+          cat > .github/workflows/build_portable.yml <<'YML'
+          name: Build Windows Portable
+
+          on:
+            workflow_dispatch:
+            push:
+              branches: [main]
+              paths:
+                - 'app.py'
+                - 'gui/**'
+                - 'core/**'
+                - 'models/**'
+                - 'exporters/**'
+                - 'requirements.txt'
+                - 'JAR_Translator.spec'
+                - '.github/workflows/build_portable.yml'
+
+          permissions:
+            contents: read
+
+          jobs:
+            build-windows-portable:
+              runs-on: windows-latest
+              timeout-minutes: 30
+              env:
+                PYTHONUTF8: '1'
+                QT_QPA_PLATFORM: offscreen
+              steps:
+                - name: Checkout source
+                  uses: actions/checkout@v4
+
+                - name: Setup Python 3.12
+                  uses: actions/setup-python@v5
+                  with:
+                    python-version: '3.12'
+                    cache: 'pip'
+
+                - name: Install dependencies
+                  shell: pwsh
+                  run: |
+                    python -m pip install --upgrade pip
+                    python -m pip install -r requirements.txt
+                    python -m pip install pyinstaller pytest
+
+                - name: Compile sources
+                  shell: pwsh
+                  run: python -m compileall -q .
+
+                - name: Run regression tests
+                  shell: pwsh
+                  run: python -m pytest -q
+
+                - name: Build portable app
+                  shell: pwsh
+                  run: |
+                    if (Test-Path build) { Remove-Item build -Recurse -Force }
+                    if (Test-Path dist) { Remove-Item dist -Recurse -Force }
+                    python -m PyInstaller --noconfirm --clean JAR_Translator.spec
+
+                - name: Verify portable output
+                  shell: pwsh
+                  run: |
+                    $exe = 'dist/JAR Vietnamese Translator/JAR Vietnamese Translator.exe'
+                    if (!(Test-Path $exe)) { throw "Portable executable was not created: $exe" }
+                    Get-Item $exe | Format-List Name,Length,LastWriteTime
+
+                - name: Package portable ZIP
+                  shell: pwsh
+                  run: |
+                    $portable = 'JAR Vietnamese Translator Portable'
+                    if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+                    New-Item -ItemType Directory -Path $portable | Out-Null
+                    Copy-Item 'dist/JAR Vietnamese Translator/*' $portable -Recurse
+                    @'
+                    JAR Vietnamese Translator - Windows Portable
+
+                    Khong can cai Python.
+                    1. Giai nen toan bo file ZIP.
+                    2. Chay "JAR Vietnamese Translator.exe".
+                    3. Khong xoa cac file/thu muc nam canh file EXE.
+                    '@ | Set-Content -Encoding UTF8 "$portable/README_PORTABLE.txt"
+                    $zip = 'JAR_Vietnamese_Translator_Windows_Portable.zip'
+                    if (Test-Path $zip) { Remove-Item $zip -Force }
+                    Compress-Archive -Path "$portable/*" -DestinationPath $zip -CompressionLevel Optimal
+                    (Get-FileHash $zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii 'JAR_Vietnamese_Translator_Windows_Portable.sha256'
+
+                - name: Upload portable artifact
+                  uses: actions/upload-artifact@v4
+                  with:
+                    name: JAR_Vietnamese_Translator_Windows_Portable
+                    path: |
+                      JAR_Vietnamese_Translator_Windows_Portable.zip
+                      JAR_Vietnamese_Translator_Windows_Portable.sha256
+                    if-no-files-found: error
+                    retention-days: 30
+          YML
+
+      - name: Validate materialized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+          python -m compileall -q .
+          python -m pytest -q
+
+      - name: Commit full source to staging branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No source changes to commit.'
+            exit 0
+          fi
+          git commit -m 'feat: sync latest translator source and portable pipeline'
+          git push origin HEAD:sync-latest-20260912
