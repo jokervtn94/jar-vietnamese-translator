@@ -69,7 +69,6 @@ def inspect_diagnostic_bundle_zip(path: str | Path) -> DiagnosticBundleInspectio
                 raise ValueError(f"Unsafe ZIP entry: {info.filename}")
             entries.append(info.filename)
 
-        entry_set = set(entries)
         manifest_name = next((name for name in entries if PurePosixPath(name).name == "manifest.txt"), "")
         runtime_name = next((name for name in entries if PurePosixPath(name).name == "runtime-diagnosis.txt"), "")
         compat_json_name = next((name for name in entries if PurePosixPath(name).name == "compatibility.compat.json"), "")
