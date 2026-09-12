@@ -25,8 +25,8 @@ def _summary(log_name="freej2me.log"):
 
 def test_zip_bundle_contains_runtime_files_and_leaves_only_zip(tmp_path):
     log = tmp_path / "freej2me.log"
-    original = "line 1\nruntime failure\n"
-    log.write_text(original, encoding="utf-8")
+    log.write_text("line 1\nruntime failure\n", encoding="utf-8")
+    original_bytes = log.read_bytes()
     out = tmp_path / "out"
 
     result = export_diagnostic_bundle_zip(out, log, _summary())
@@ -41,7 +41,7 @@ def test_zip_bundle_contains_runtime_files_and_leaves_only_zip(tmp_path):
     }
 
     with zipfile.ZipFile(result.zip_path, "r") as archive:
-        assert archive.read("freej2me.log").decode("utf-8") == original
+        assert archive.read("freej2me.log") == original_bytes
         manifest = archive.read("manifest.txt").decode("utf-8")
         assert "Compatibility JSON: not available" in manifest
 
