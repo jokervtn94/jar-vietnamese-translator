@@ -4,6 +4,10 @@ from PySide6.QtWidgets import QComboBox, QFrame, QGridLayout, QLabel, QMessageBo
 
 from core.diagnostic_compare import compare_reports, format_comparison, load_report
 from core.diagnostic_verdict import build_compare_verdict, format_compare_verdict
+from core.diagnostic_recommendation import (
+    build_compare_recommendation,
+    format_compare_recommendation,
+)
 
 
 def install_diagnostic_compare(MainWindow):
@@ -101,7 +105,14 @@ def install_diagnostic_compare(MainWindow):
             right = load_report(right_entry.json_path)
             comparison = compare_reports(left, right)
             verdict = build_compare_verdict(comparison, left, right)
-            text = format_compare_verdict(verdict) + "\n\n" + format_comparison(comparison)
+            recommendation = build_compare_recommendation(comparison, verdict, left, right)
+            text = (
+                format_compare_verdict(verdict)
+                + "\n\n"
+                + format_compare_recommendation(recommendation)
+                + "\n\n"
+                + format_comparison(comparison)
+            )
             self.diagnostic_compare_value.setText(text)
             if verdict.label == "IMPROVED":
                 self.diagnostic_compare_value.setStyleSheet("color:#059669; font-weight:600;")
@@ -112,7 +123,7 @@ def install_diagnostic_compare(MainWindow):
             else:
                 self.diagnostic_compare_value.setStyleSheet("")
             self.statusBar().showMessage(
-                f"{verdict.label}: {left_entry.jar_name} → {right_entry.jar_name}", 7000
+                f"{verdict.label}: {recommendation.title}", 7000
             )
         except Exception as exc:
             self.diagnostic_compare_value.setStyleSheet("")
