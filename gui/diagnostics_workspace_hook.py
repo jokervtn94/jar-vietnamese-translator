@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# Portable workspace mirrors the development workspace semantically.
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -54,6 +55,7 @@ def install_diagnostics_workspace(MainWindow):
         if not all(hasattr(self, name) for name in required):
             return
 
+        # Remove legacy diagnostic cards from the narrow translation editor sidebar.
         right_layout = self.right_panel.layout()
         cards = [
             self.runtime_compat_card,
@@ -64,6 +66,8 @@ def install_diagnostics_workspace(MainWindow):
         for card in cards:
             right_layout.removeWidget(card)
 
+        # Turn the application's work area into two first-class pages:
+        # translation workspace and full-width diagnostics center.
         translation_page = self.workspace.parentWidget()
         host = translation_page.parentWidget()
         host_layout = host.layout()
@@ -120,6 +124,7 @@ def install_diagnostics_workspace(MainWindow):
         page_layout.addWidget(tabs, 1)
         stack.addWidget(diagnostics_page)
 
+        # Persistent, visible navigation in the main workflow header.
         header = self.build_jar_btn.parentWidget()
         header_layout = header.layout()
         diagnostics_btn = QPushButton("Diagnostics")
@@ -145,23 +150,80 @@ def install_diagnostics_workspace(MainWindow):
 
         diagnostics_page.setStyleSheet(
             """
-            QWidget#DiagnosticsPage { background: #F7F8FA; }
-            QFrame#DiagnosticsTopBar { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; }
-            QLabel#DiagnosticsTitle { color: #111827; font-size: 18px; font-weight: 700; border: none; background: transparent; }
-            QLabel#DiagnosticsSubtitle { color: #6B7280; font-size: 11px; border: none; background: transparent; }
-            QLabel#DiagnosticsBadge { color: #2563EB; background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 9px; padding: 5px 9px; font-weight: 600; }
-            QPushButton#DiagnosticsBackButton { min-height: 32px; padding: 0 12px; }
-            QTabWidget#DiagnosticsTabs::pane { border: 1px solid #E5E7EB; border-radius: 12px; background: #FFFFFF; top: 8px; }
-            QTabWidget#DiagnosticsTabs QTabBar::tab { color: #4B5563; background: #EDEFF3; border: none; border-radius: 8px; padding: 9px 16px; margin-right: 5px; min-width: 90px; }
-            QTabWidget#DiagnosticsTabs QTabBar::tab:selected { color: #1D4ED8; background: #EAF2FF; font-weight: 700; }
-            QTabWidget#DiagnosticsTabs QTabBar::tab:hover:!selected { background: #E2E5EA; }
+            QWidget#DiagnosticsPage {
+                background: #F7F8FA;
+            }
+            QFrame#DiagnosticsTopBar {
+                background: #FFFFFF;
+                border: 1px solid #E5E7EB;
+                border-radius: 14px;
+            }
+            QLabel#DiagnosticsTitle {
+                color: #111827;
+                font-size: 18px;
+                font-weight: 700;
+                border: none;
+                background: transparent;
+            }
+            QLabel#DiagnosticsSubtitle {
+                color: #6B7280;
+                font-size: 11px;
+                border: none;
+                background: transparent;
+            }
+            QLabel#DiagnosticsBadge {
+                color: #2563EB;
+                background: #EFF6FF;
+                border: 1px solid #DBEAFE;
+                border-radius: 9px;
+                padding: 5px 9px;
+                font-weight: 600;
+            }
+            QPushButton#DiagnosticsBackButton {
+                min-height: 32px;
+                padding: 0 12px;
+            }
+            QTabWidget#DiagnosticsTabs::pane {
+                border: 1px solid #E5E7EB;
+                border-radius: 12px;
+                background: #FFFFFF;
+                top: 8px;
+            }
+            QTabWidget#DiagnosticsTabs QTabBar::tab {
+                color: #4B5563;
+                background: #EDEFF3;
+                border: none;
+                border-radius: 8px;
+                padding: 9px 16px;
+                margin-right: 5px;
+                min-width: 90px;
+            }
+            QTabWidget#DiagnosticsTabs QTabBar::tab:selected {
+                color: #1D4ED8;
+                background: #EAF2FF;
+                font-weight: 700;
+            }
+            QTabWidget#DiagnosticsTabs QTabBar::tab:hover:!selected {
+                background: #E2E5EA;
+            }
             """
         )
 
         diagnostics_btn.setStyleSheet(
             """
-            QPushButton#DiagnosticsNavButton { color: #1D4ED8; background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 9px; padding: 0 14px; font-weight: 700; }
-            QPushButton#DiagnosticsNavButton:hover, QPushButton#DiagnosticsNavButton[active="true"] { background: #DBEAFE; border-color: #BFDBFE; }
+            QPushButton#DiagnosticsNavButton {
+                color: #1D4ED8;
+                background: #EFF6FF;
+                border: 1px solid #DBEAFE;
+                border-radius: 9px;
+                padding: 0 14px;
+                font-weight: 700;
+            }
+            QPushButton#DiagnosticsNavButton:hover,
+            QPushButton#DiagnosticsNavButton[active="true"] {
+                background: #DBEAFE;
+                border-color: #BFDBFE;
+            }
             """
         )
 
@@ -172,6 +234,7 @@ def install_diagnostics_workspace(MainWindow):
         self.diagnostics_nav_btn = diagnostics_btn
         self._show_diagnostics_page = show_diagnostics
         self._show_translation_page = show_translation
+
         show_translation()
 
     def _diagnostics_show_tab(self, name):
