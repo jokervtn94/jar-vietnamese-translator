@@ -70,6 +70,96 @@ class ImportResult:
         )
 
 class TranslationExchange:
+    def prepare_import_file(self, path: str, result, existing_translations=None, overwrite=False):
+        """Parse + validate JSON without mutating the live project.
+
+        Safe to run in a worker thread. Returns (ImportResult, updates_dict).
+        """
+        payload=json.loads(Path(path).read_text(encoding="utf-8-sig"))
+        return self.prepare_import_payload(
+            payload, result, existing_translations or {}, overwrite=overwrite
+        )
+
+    def prepare_import_payload(self, payload, result, existing_translations=None, overwrite=False):
+        """Validate an import and collect accepted translations in one pass.
+
+        This avoids touching TranslationProject repeatedly during background work.
+        """
+        existing_translations = existing_translations or {}
+        report=ImportResult()
+        updates={}
+        by_key,by_original=self._current_maps(result)
+
+        if isinstance(payload,dict) and payload.get("format")==FORMAT_V2:
+            if not self._validate_v2_header(payload,result,report):
+                return report, updates
+
+            seen_ids=set(); seen_keys=set()
+            for row in payload["items"]:
+                if not isinstance(row,dict):
+                    report.rejected_schema+=1; continue
+                required=("id","key","source","kind","index","original",
+                          "original_sha256","placeholders","translation")
+                missing=[k for k in required if k not in row]
+                if missing:
+                    report.rejected_schema+=1
+                    report.warnings.append(f"Missing required fields: {missing}")
+                    continue
+                row_id=str(row.get("id","")); key=str(row.get("key",""))
+                if row_id in seen_ids or key in seen_keys:
+                    report.rejected_duplicate+=1
+                    report.warnings.append(f"Duplicate id/key detected: {row_id!r}")
+                    continue
+                seen_ids.add(row_id); seen_keys.add(key)
+                target=by_key.get(key)
+                if target is None:
+                    report.rejected_unknown+=1; continue
+                original=row.get("original")
+                if original != target.value:
+                    report.rejected_original_mismatch+=1; continue
+                # Hash the already supplied original instead of the target again.
+                # original equality above guarantees they are identical.
+                if row.get("original_sha256","") != sha256_text(original):
+                    report.rejected_hash+=1
+                    report.warnings.append(f"original_sha256 mismatch for {row_id}.")
+                    continue
+                supplied_placeholders=row.get("placeholders")
+                expected_placeholders=extract_placeholders(original)
+                if supplied_placeholders != expected_placeholders:
+                    report.rejected_schema+=1
+                    report.warnings.append(f"Placeholder manifest changed for {row_id}.")
+                    continue
+                if (row.get("source") != target.source or row.get("kind") != target.kind
+                        or row.get("index") != target.index):
+                    report.rejected_schema+=1
+                    report.warnings.append(f"Immutable metadata changed for {row_id}.")
+                    continue
+                translation=row.get("translation")
+                if not isinstance(translation,str) or not translation.strip():
+                    report.rejected_empty+=1; continue
+                if (existing_translations.get(target.key,"").strip() or updates.get(target.key,"")) and not overwrite:
+                    report.skipped_existing+=1; continue
+                translated=translation.strip()
+                # Reuse expected placeholder manifest; do not rescan original twice.
+                if expected_placeholders != extract_placeholders(translated):
+                    report.rejected_placeholder+=1
+                    report.warnings.append(
+                        f"Placeholder mismatch: {target.value!r} -> {translated!r}")
+                    continue
+                updates[target.key]=translated
+                report.imported+=1
+            return report, updates
+
+        # Backward-compatible formats use the old importer against a temporary project.
+        from core.translation_project import TranslationProject
+        tmp=TranslationProject(jar_path=getattr(result,"jar_path",""),
+                               translations=dict(existing_translations))
+        report=self.import_payload(payload,result,tmp,overwrite=overwrite)
+        for key,val in tmp.translations.items():
+            if existing_translations.get(key) != val:
+                updates[key]=val
+        return report, updates
+
     def _build_items(self, result, project, include_translated=False):
         items=[]
         seen=set()

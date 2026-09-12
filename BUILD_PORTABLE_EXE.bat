@@ -1,10 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Build JAR Vietnamese Translator V4.6 Portable
+title Build JAR Vietnamese Translator Portable
 
 echo ===============================================
-echo  JAR Vietnamese Translator V4.6 - Portable EXE
+echo  JAR Vietnamese Translator - Portable EXE
 echo ===============================================
 echo.
 
@@ -46,13 +46,13 @@ if errorlevel 1 goto BUILDERROR
 
 echo [5/5] Build portable EXE...
 if exist "build" rmdir /s /q "build"
-if exist "dist\JAR_Translator" rmdir /s /q "dist\JAR_Translator"
+if exist "dist\JAR Vietnamese Translator" rmdir /s /q "dist\JAR Vietnamese Translator"
 
 ".venv\Scripts\python.exe" -m PyInstaller ^
     --noconfirm ^
     --clean ^
     --windowed ^
-    --name "JAR_Translator" ^
+    --name "JAR Vietnamese Translator" ^
     --collect-all PySide6 ^
     "app.py"
 
@@ -63,12 +63,12 @@ echo ===============================================
 echo BUILD THANH CONG
 echo ===============================================
 echo File chay:
-echo %CD%\dist\JAR_Translator\JAR_Translator.exe
+echo %CD%\dist\JAR Vietnamese Translator\JAR Vietnamese Translator.exe
 echo.
-echo Thu muc "dist\JAR_Translator" la ban Portable.
+echo Thu muc "dist\JAR Vietnamese Translator" la ban Portable.
 echo Co the copy nguyen thu muc nay sang PC Windows khac.
 echo.
-start "" "%CD%\dist\JAR_Translator\JAR_Translator.exe"
+start "" "%CD%\dist\JAR Vietnamese Translator\JAR Vietnamese Translator.exe"
 pause
 exit /b 0
 

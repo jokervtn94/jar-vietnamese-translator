@@ -14,7 +14,7 @@ def main():
     project.jar_path = sys.argv[1]
 
     r = StablePipeline().readiness(result, project)
-    print("V4.6 BUILD READINESS:", r.status)
+    print("V4.7 BUILD READINESS:", r.status)
     print(f"Translations: {r.translated_strings}/{r.total_strings}")
     print(f"Binary safe/locked: {r.binary_safe}/{r.binary_unsafe}")
     print("Compatibility:", r.compatibility_risk)

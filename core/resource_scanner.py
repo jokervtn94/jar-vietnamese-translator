@@ -1,6 +1,7 @@
 import re
 from typing import List
 from models.data import ExtractedString
+from core.encoding_utils import decode_best
 
 TEXT_EXTENSIONS = {".txt", ".properties", ".xml", ".csv", ".ini", ".lang", ".lng", ".json", ".yaml", ".yml", ".cfg", ".conf", ".config", ".loc", ".locale", ".strings", ".po"}
 BINARY_EXTENSIONS = {".dat", ".bin", ".res", ".pak", ".db", ".rms"}
@@ -20,12 +21,9 @@ class ResourceScanner:
         return []
 
     def _decode(self, data: bytes):
-        for enc in ("utf-8-sig", "utf-16", "cp1252", "latin-1"):
-            try:
-                return data.decode(enc), enc
-            except UnicodeDecodeError:
-                pass
-        return data.decode("latin-1", errors="replace"), "latin-1"
+        # Prefer the best-scoring decode instead of the first codec that happens
+        # not to throw. Latin-1 always succeeds and previously masked GBK/GB18030.
+        return decode_best(data)
 
     def _scan_text(self, source: str, data: bytes):
         text, enc = self._decode(data)

@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import List
 import re
 from models.data import ExtractedString
+from core.encoding_utils import decode_candidates, repair_utf8_mojibake, scan_legacy_cjk_runs
 
 MEDIA_EXTENSIONS = {
     ".png",".jpg",".jpeg",".gif",".bmp",".ico",
@@ -56,6 +57,7 @@ class DeepResourceScanner:
         seen=set()
 
         def add(value,kind,index,enc):
+            value=repair_utf8_mojibake(value)
             clean=value.strip("\x00\r\n\t ")
             key=(index,clean,kind)
             if key in seen or not _looks_human(clean):
@@ -65,19 +67,9 @@ class DeepResourceScanner:
 
         # Whole-file text detection. This catches uncommon extensions such as .cfg/.loc/.db/.pak
         # when their payload is actually textual.
-        enc_candidates=[]
-        if data.startswith(b"\xff\xfe") or data.startswith(b"\xfe\xff"):
-            enc_candidates=["utf-16"]
-        elif data.startswith(b"\xef\xbb\xbf"):
-            enc_candidates=["utf-8-sig"]
-        else:
-            enc_candidates=["utf-8","utf-16le","utf-16be","cp1252","latin-1"]
+        enc_candidates = ("utf-8-sig","utf-8","gb18030","gbk","big5","utf-16","utf-16le","utf-16be","cp1252","latin-1")
 
-        for enc in enc_candidates:
-            try:
-                text=data.decode(enc)
-            except Exception:
-                continue
+        for text, enc, _quality in decode_candidates(data, enc_candidates):
             if not text:
                 continue
             printable=sum(ch.isprintable() or ch in "\r\n\t" for ch in text)/max(1,len(text))
@@ -119,6 +111,12 @@ class DeepResourceScanner:
                 continue
             if any(ord(ch)>127 for ch in s):
                 add(s,"deep-binary-utf8",m.start(),"utf-8")
+
+        # Legacy Chinese encodings embedded in arbitrary binary resources.
+        # Discovery-only: framing/patch safety is handled by BinaryResourceAnalyzer.
+        for enc in ("gb18030", "big5"):
+            for off, raw_bytes, text in scan_legacy_cjk_runs(data, enc, min_chars=2):
+                add(text, f"deep-binary-{enc}", off, enc)
 
         # UTF-16LE printable runs (very common in ports/tools even with odd extensions).
         i=0

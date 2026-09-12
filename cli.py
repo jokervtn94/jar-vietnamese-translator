@@ -2,7 +2,7 @@ import argparse
 from core.jar_scanner import JarScanner
 from exporters.exporter import Exporter
 
-p = argparse.ArgumentParser(description="JAR Vietnamese Translator V4.6 scanner")
+p = argparse.ArgumentParser(description="JAR Vietnamese Translator scanner")
 p.add_argument("jar")
 p.add_argument("--csv")
 p.add_argument("--json")

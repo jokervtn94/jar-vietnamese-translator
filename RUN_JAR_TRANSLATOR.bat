@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title JAR Vietnamese Translator V4.6
+title JAR Vietnamese Translator
 
 if not exist "app.py" (
     echo [ERROR] Khong tim thay app.py trong thu muc:
@@ -22,7 +22,7 @@ if %errorlevel%==0 (
 )
 
 echo ============================================
-echo  JAR Vietnamese Translator V4.6 - First Setup
+echo  JAR Vietnamese Translator - First Setup
 echo ============================================
 echo.
 echo Dang tao moi truong Python...

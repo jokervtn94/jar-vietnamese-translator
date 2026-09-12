@@ -43,13 +43,26 @@ class ClassReader:
 
     @staticmethod
     def decode_modified_utf8(raw: bytes) -> str:
-        # Java MUTF-8 differs mainly for NUL and surrogate pairs. For language
-        # scanning, this permissive conversion preserves normal textual data.
+        # Java Modified UTF-8 encodes NUL as C0 80 and supplementary characters
+        # as CESU-8 surrogate pairs. Decode both forms without turning valid game
+        # text into replacement characters.
         raw = raw.replace(b"\xC0\x80", b"\x00")
         try:
-            return raw.decode("utf-8", errors="strict")
+            text = raw.decode("utf-8", errors="surrogatepass")
         except UnicodeDecodeError:
             return raw.decode("utf-8", errors="replace")
+        out=[]
+        i=0
+        while i < len(text):
+            o=ord(text[i])
+            if 0xD800 <= o <= 0xDBFF and i+1 < len(text):
+                o2=ord(text[i+1])
+                if 0xDC00 <= o2 <= 0xDFFF:
+                    out.append(chr(0x10000 + ((o-0xD800)<<10) + (o2-0xDC00)))
+                    i += 2
+                    continue
+            out.append(text[i]); i += 1
+        return "".join(out)
 
     def extract_strings(self) -> List[ExtractedString]:
         if self.u4() != 0xCAFEBABE:

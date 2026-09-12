@@ -97,7 +97,7 @@ class RuntimeTestPackager:
         manifest=folder/"PACKAGE_MANIFEST.json"
         payload={
             "format":"jar-translator-runtime-test-package",
-            "version":"4.6",
+            "version":"4.7",
             "source":{
                 "file":source_copy.name,
                 "sha256":self._sha256(source_copy),

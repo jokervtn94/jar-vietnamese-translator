@@ -3,6 +3,7 @@ import math
 import re
 from typing import List, Tuple
 from models.data import ExtractedString
+from core.encoding_utils import script_count
 
 # High-confidence player-facing labels. Exact matches get a strong boost, including
 # short labels that generic heuristics would otherwise discard.
@@ -73,6 +74,31 @@ GAME_NUMERIC_LABEL_RE = re.compile(
 )
 PRINTF_ONLY_RE = re.compile(r'^(?:%[-+#0-9.*$]*[a-zA-Z]\s*)+$')
 
+# V4.10 precision helpers. These are deliberately narrow: they target script/
+# identifier shapes that repeatedly appear in J2ME engines while preserving
+# ordinary one-word UI labels and all CJK language text.
+SCRIPT_COMMAND_WORDS = {
+    "action","backward","control","delay","fadein","fadeout","film","flash",
+    "halt","imagemap","mark","mask","movie","nfopen","nofight","paycall",
+    "pcenter","poem","psound","push","random","reset","saction","sanimation",
+    "scenter","spro","sserial","ssound","state","still","text","trigger",
+    "setx","sety","xmove","xmoveto","ymove","ymoveto","verify","result",
+    "record1","record2","record3","minl","ml","al","part","pay",
+}
+
+PREFIXED_ENGINE_TOKEN_RE = re.compile(
+    r'^[acdfjmps](?:mission|player|save|speed|action|serial|sound|sprite|center|pro)$',
+    re.I,
+)
+BRACKET_COMMAND_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*\[$')
+COMMAND_SCRIPT_RE = re.compile(
+    r'(?i)(?:^|[;\s])(?:aplayer|splayer|magic|item|equip|stage|scene|trigger|event|money|pay)\s+[^;]+;'
+)
+ODD_ASCII_BINARY_RE = re.compile(r'^[\x20-\x7e]+$')
+PATH_FRAGMENT_RE = re.compile(r'^(?:[/\\][A-Za-z0-9_.-]+)+[/\\]?$')
+MIDLET_META_RE = re.compile(r'(?i)^MIDlet-[A-Za-z0-9-]+$')
+UPPER_CAMEL_TOKEN_RE = re.compile(r'^[A-Z][A-Za-z0-9]{4,}$')
+
 class LanguageDetector:
     """
     V4.4 precision-first game-text classifier.
@@ -124,6 +150,8 @@ class LanguageDetector:
         spaces=sum(ch.isspace() for ch in s)
         punct=sum((not ch.isalnum()) and (not ch.isspace()) for ch in s)
         length=len(s)
+        cjk_chars=script_count(s)
+        cjk_ratio=cjk_chars/max(1,length)
 
         if letters==0:
             return -100,["no letters"]
@@ -149,8 +177,16 @@ class LanguageDetector:
             score-=70; reasons.append("package/class name")
         if SLASH_PATH_RE.fullmatch(s):
             score-=65; reasons.append("path")
+        if PATH_FRAGMENT_RE.fullmatch(s):
+            score-=85; reasons.append("path fragment")
+        if MIDLET_META_RE.fullmatch(s):
+            score-=90; reasons.append("MIDlet metadata key")
         if FILE_EXT_RE.search(s) and " " not in s:
             score-=55; reasons.append("filename")
+        # V4.11: reject bare extension/path fragments such as `.map` that are
+        # technical resource tokens, not player-facing labels.
+        if re.fullmatch(r"\.[A-Za-z0-9]{1,8}", s):
+            return -100, ["bare file extension token"]
         if PRINTF_ONLY_RE.fullmatch(s):
             score-=60; reasons.append("format token only")
         if CONST_RE.fullmatch(s) and lower not in UI_WORDS:
@@ -159,6 +195,33 @@ class LanguageDetector:
             score-=50; reasons.append("snake_case identifier")
         if self._camel_case_identifier(s) and lower not in UI_WORDS:
             score-=42; reasons.append("camelCase identifier")
+        if kind.startswith("class-string") and PREFIXED_ENGINE_TOKEN_RE.fullmatch(s):
+            score-=85; reasons.append("prefixed engine token")
+        if kind.startswith("class-string") and BRACKET_COMMAND_RE.fullmatch(s):
+            score-=70; reasons.append("script command token")
+        if kind.startswith("class-string") and lower in SCRIPT_COMMAND_WORDS and lower not in UI_WORDS:
+            score-=58; reasons.append("engine/script command")
+
+        # Binary command streams can accidentally satisfy a length prefix and be
+        # mislabeled as safe text.  Detect command-list syntax before positive
+        # language boosts are applied.
+        if kind.startswith("binary:") and COMMAND_SCRIPT_RE.search(s):
+            score-=100; reasons.append("binary command script")
+
+        # ASCII-only binary runs need natural-language evidence. Random config
+        # tables frequently contain long printable sequences such as nLv/vXi/ian
+        # that are structurally framed but are not player-facing language.
+        if kind.startswith("binary:") and cjk_chars == 0:
+            if "\x7f" in s:
+                score-=120; reasons.append("binary control byte in ASCII payload")
+            if ODD_ASCII_BINARY_RE.fullmatch(s):
+                odd_punct=sum(ch in "\\[]{}<>`|^~" for ch in s)
+                repeated_engine_chunks=sum(lower.count(x) for x in ("nlv","vxi","ian"))
+                if spaces == 0 and (
+                    (length >= 5 and odd_punct >= 1)
+                    or (length >= 5 and repeated_engine_chunks >= 2)
+                ):
+                    score-=95; reasons.append("random-looking ASCII binary payload")
 
         # Resource/class internals frequently found by Deep Scan.
         if any(x in lower for x in (
@@ -167,7 +230,27 @@ class LanguageDetector:
         )):
             score-=90; reasons.append("platform/internal reference")
 
+        # Plain lowercase class constants are frequently VM/script identifiers.
+        # Keep known UI labels, but require stronger evidence for arbitrary tokens.
+        if kind.startswith("class-string") and cjk_chars == 0 and IDENT_RE.fullmatch(s) and s.islower():
+            if lower not in UI_WORDS and lower not in HUMAN_WORD_HINTS:
+                score-=45; reasons.append("lowercase class identifier")
+        if kind.startswith("class-string") and cjk_chars == 0 and UPPER_CAMEL_TOKEN_RE.fullmatch(s):
+            if lower not in UI_WORDS:
+                score-=55; reasons.append("class/type identifier")
+
         # ---------- strong positives ----------
+        # V4.6 was calibrated mainly for English. CJK strings discovered in binary
+        # resources were often extracted correctly and then rejected by this gate.
+        # Script evidence is a strong language signal even without spaces/Latin words.
+        if cjk_chars >= 2:
+            score += 34
+            reasons.append("CJK language text")
+            if cjk_ratio >= 0.45:
+                score += 12
+            if 2 <= length <= 12:
+                score += 8
+
         normalized=lower.strip(" .,!?:;…-'\"")
         if normalized in UI_WORDS:
             score+=90; reasons.append("known game UI label")

@@ -1,0 +1,236 @@
+"""Single source of truth for the JAR Vietnamese Translator light Monokai-inspired UI."""
+
+MONOKAI_LIGHT_QSS = r'''
+QMainWindow, QWidget {
+    background-color: #F5F7FA;
+    color: #14213D;
+    font-family: "Segoe UI";
+    font-size: 12px;
+}
+QFrame#AppBar {
+    background-color: #F8FAFC;
+    border-bottom: 1px solid #E4E9F0;
+}
+QFrame#HeaderFrame {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E3E8EF;
+}
+QLabel#AppMark {
+    background: #315AA8;
+    color: #FFFFFF;
+    border-radius: 7px;
+    min-width: 28px; max-width: 28px;
+    min-height: 28px; max-height: 28px;
+    qproperty-alignment: AlignCenter;
+    font-weight: 800;
+    font-size: 14px;
+}
+QLabel#AppTitle { color: #13213E; font-size: 18px; font-weight: 750; }
+QLabel#AppSubtitle { color: #718096; font-size: 10px; }
+QLabel#PanelTitle { color: #172443; font-size: 13px; font-weight: 750; }
+QLabel#Muted, QLabel#InspectorCount { color: #65758B; font-size: 11px; }
+
+QPushButton {
+    background-color: #FFFFFF;
+    border: 1px solid #D8E0EA;
+    color: #29405F;
+    border-radius: 8px;
+    padding: 7px 11px;
+}
+QPushButton:hover { background-color: #F2F6FA; border-color: #B8C7D9; }
+QPushButton:pressed { background-color: #E9EFF6; }
+QPushButton:disabled { color: #A5B1BF; background-color: #F4F6F8; border-color: #E2E7ED; }
+QPushButton#Primary, QPushButton#BuildBtn {
+    background-color: #E60073;
+    color: #FFFFFF;
+    border: 0;
+    font-weight: 750;
+}
+QPushButton#Primary:hover, QPushButton#BuildBtn:hover { background-color: #CC0066; }
+QPushButton#BuildBtn:pressed { background-color: #B4005A; }
+QPushButton#BuildBtn:disabled { background-color: #F1B7D2; color: #FFF8FB; }
+QPushButton#WindowButton, QPushButton#IconButton {
+    background: transparent;
+    border: 0;
+    color: #344862;
+    padding: 5px;
+    border-radius: 7px;
+}
+QPushButton#WindowButton:hover, QPushButton#IconButton:hover { background: #E9EEF5; color: #13213E; }
+QPushButton#CloseButton { background: transparent; border: 0; color: #344862; font-size: 18px; border-radius: 7px; }
+QPushButton#CloseButton:hover { background: #E81123; color: white; }
+QPushButton#ThemeButton {
+    background: transparent; border: 0; color: #F4B400; font-size: 21px;
+    padding: 2px; border-radius: 8px;
+}
+QPushButton#ThemeButton:hover { background: #FFF4C8; }
+
+QFrame#WorkflowStep { background: transparent; border: 0; border-radius: 10px; }
+QFrame#WorkflowStep[active="true"] {
+    background-color: #FFF9FC;
+    border: 1px solid #F7D3E5;
+    border-bottom: 3px solid #E60073;
+}
+QLabel#StepBadgeActive {
+    background: #E60073; color: white; border-radius: 13px;
+    min-width: 26px; max-width: 26px; min-height: 26px; max-height: 26px;
+    qproperty-alignment: AlignCenter; font-weight: 750;
+}
+QLabel#StepBadge {
+    background: #CBD5E1; color: #253A56; border-radius: 13px;
+    min-width: 26px; max-width: 26px; min-height: 26px; max-height: 26px;
+    qproperty-alignment: AlignCenter; font-weight: 750;
+}
+QPushButton#StageMenu {
+    background: transparent; border: 0; padding: 0;
+    color: #152441; font-weight: 750; font-size: 13px; text-align: left;
+}
+QPushButton#StageMenu::menu-indicator { image: none; width: 0px; }
+QLabel#StepSub { color: #6D7F96; font-size: 11px; }
+QLabel#StepArrow { color: #B6C2D0; font-size: 22px; }
+
+QFrame#Panel {
+    background-color: #FFFFFF;
+    border: 1px solid #E1E6ED;
+    border-radius: 11px;
+}
+QFrame#ExplorerPanel {
+    background-color: #223447;
+    border: 1px solid #2D4359;
+    border-radius: 11px;
+}
+QFrame#ExplorerPanel QLabel#PanelTitle { color: #FFFFFF; }
+QFrame#InnerCard {
+    background-color: #F8FAFC;
+    border: 1px solid #DDE4EC;
+    border-radius: 9px;
+}
+QFrame#SuggestionCard {
+    background-color: #FFFDF4;
+    border: 1px solid #F1E4A4;
+    border-radius: 9px;
+}
+QLabel#SuggestionTitle { color: #B57B00; font-size: 12px; font-weight: 750; }
+QLabel#SuggestionText { color: #344862; font-size: 11px; }
+
+QLineEdit, QComboBox, QTextEdit {
+    background-color: #FBFCFE;
+    border: 1px solid #D6DEE8;
+    border-radius: 8px;
+    color: #213654;
+    padding: 7px 10px;
+    selection-background-color: #BFE5FF;
+    selection-color: #102A43;
+}
+QLineEdit:focus, QComboBox:focus, QTextEdit:focus { border: 1px solid #E60073; background-color: #FFFFFF; }
+QComboBox { min-height: 20px; }
+QComboBox::drop-down { border: 0; width: 24px; }
+QComboBox QAbstractItemView {
+    background: #FFFFFF;
+    border: 1px solid #D7DFE9;
+    color: #213654;
+    selection-background-color: #E6F3FF;
+    selection-color: #14213D;
+    outline: 0;
+}
+
+QFrame#ExplorerPanel QLineEdit {
+    background-color: #263C51;
+    border: 1px solid #52708E;
+    color: #EEF5FB;
+    selection-background-color: #315C7D;
+}
+QFrame#ExplorerPanel QLineEdit:focus { border-color: #FF5CA8; }
+QFrame#ExplorerPanel QTreeWidget {
+    background: transparent;
+    border: 0;
+    color: #F0F5FA;
+    outline: 0;
+}
+QFrame#ExplorerPanel QTreeWidget::item { min-height: 26px; padding: 2px 3px; border-radius: 5px; }
+QFrame#ExplorerPanel QTreeWidget::item:hover { background: #2B455E; }
+QFrame#ExplorerPanel QTreeWidget::item:selected { background: #334E68; color: #FFFFFF; }
+
+QTreeWidget { background: transparent; border: 0; color: #334E68; outline: 0; }
+QTreeWidget::item { min-height: 26px; padding: 2px 3px; border-radius: 5px; }
+QTreeWidget::item:hover { background: #EEF3F7; }
+QTreeWidget::item:selected { background: #D9EEFF; color: #173A5E; }
+
+QTableWidget {
+    background: #FFFFFF;
+    alternate-background-color: #FAFBFD;
+    border: 0;
+    gridline-color: #E4E9EF;
+    color: #29405F;
+    outline: 0;
+    selection-background-color: #CBEAFF;
+    selection-color: #183B5B;
+}
+QHeaderView::section {
+    background: #F8FAFC;
+    color: #40566F;
+    padding: 8px 7px;
+    border: 0;
+    border-right: 1px solid #E3E8EF;
+    border-bottom: 1px solid #DDE4EC;
+    font-weight: 750;
+    font-size: 11px;
+}
+QTableWidget::item { padding: 7px; border-bottom: 1px solid #EEF1F5; }
+QTableWidget::item:selected { background: #CBEAFF; color: #173A5E; }
+
+QCheckBox { color: #334E68; spacing: 9px; }
+QCheckBox::indicator {
+    width: 40px; height: 21px;
+    border: 1px solid #C7D1DD;
+    border-radius: 11px;
+    background: #DCE3EA;
+}
+QCheckBox::indicator:checked { background: #E60073; border-color: #E60073; }
+
+QProgressBar {
+    border: 0;
+    background: #DDE5ED;
+    border-radius: 5px;
+    min-height: 9px; max-height: 9px;
+    color: transparent;
+}
+QProgressBar::chunk { background: #E60073; border-radius: 5px; }
+QStatusBar {
+    background: #FFFFFF;
+    border-top: 1px solid #E1E6ED;
+    color: #40566F;
+    font-size: 11px;
+    min-height: 38px; max-height: 38px;
+}
+QMenu {
+    background: #FFFFFF;
+    color: #233A56;
+    border: 1px solid #D6DEE8;
+    padding: 5px;
+}
+QMenu::item { padding: 8px 26px 8px 11px; border-radius: 6px; }
+QMenu::item:selected { background: #FFF0F7; color: #B8005C; }
+QToolTip { background: #24364A; color: white; border: 1px solid #334E68; padding: 5px; }
+
+QSplitter::handle { background: #F5F7FA; width: 10px; }
+QSplitter::handle:hover { background: #E3E8EF; }
+QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
+QScrollBar::handle:vertical { background: #C1CCD8; min-height: 28px; border-radius: 5px; }
+QScrollBar::handle:vertical:hover { background: #9EADBC; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+QScrollBar:horizontal { background: transparent; height: 10px; margin: 2px; }
+QScrollBar::handle:horizontal { background: #C1CCD8; min-width: 28px; border-radius: 5px; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }
+'''
+
+
+def load_fluent_light_theme() -> str:
+    return MONOKAI_LIGHT_QSS
+
+
+# Backward-compatible alias for extensions that imported the old theme function.
+def load_fluent_dark_theme() -> str:
+    return MONOKAI_LIGHT_QSS

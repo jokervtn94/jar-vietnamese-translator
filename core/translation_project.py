@@ -43,7 +43,7 @@ class TranslationProject:
     def _payload(self, result=None):
         payload = {
             "format": "jar-translator-project-v2",
-            "app_version": "4.6",
+            "app_version": "4.14",
             "saved_at": datetime.now(timezone.utc).isoformat(),
             "jar_path": self.jar_path,
             "translations": self.translations,
