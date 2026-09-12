@@ -12,7 +12,7 @@ class BuildTaskDialog(QDialog):
     TASKS = [
         ("preflight", "Kiểm tra điều kiện build"),
         ("glyph", "Kiểm tra font / glyph"),
-        ("compat", "FreeJ2ME / RG35XX · API / WMA"),
+        ("compat", "FreeJ2ME / RG35XX · API / WMA / Startup"),
         ("prepare", "Chuẩn bị bản dịch và file tạm"),
         ("patch", "Patch class / resource / binary"),
         ("validate", "Kiểm tra ZIP / CRC / class"),
@@ -49,7 +49,7 @@ class BuildTaskDialog(QDialog):
         runtime_layout.setSpacing(3)
         runtime_title = QLabel("Target runtime: FreeJ2ME / RG35XX")
         runtime_title.setObjectName("PanelTitle")
-        self.runtime_detail = QLabel("Compatibility: đang chờ phân tích API / WMA…")
+        self.runtime_detail = QLabel("Compatibility: đang chờ phân tích API / WMA / startup…")
         self.runtime_detail.setObjectName("Muted")
         self.runtime_detail.setWordWrap(True)
         runtime_layout.addWidget(runtime_title)
@@ -151,12 +151,19 @@ class BuildTaskDialog(QDialog):
             "Conditional API dependencies",
             "Target runtime score",
             "FreeJ2ME / RG35XX",
+            "Likely startup blocker",
+            "Optional feature risk",
+            "Runtime-only incompatibility",
+            "Needs runtime test",
+            "startup_assessment",
         )
         if message and any(marker in message for marker in runtime_markers):
             runtime_level = level
-            if runtime_level == "info" and (
-                "WMA/SMS" in message or "Unsupported API dependencies" in message
-            ):
+            if runtime_level == "info" and any(marker in message for marker in (
+                "WMA/SMS",
+                "Unsupported API dependencies",
+                "Likely startup blocker",
+            )):
                 runtime_level = "warning"
             self.set_runtime_summary(message, runtime_level)
 
