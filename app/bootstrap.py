@@ -18,10 +18,12 @@ def main() -> int:
     from gui.runtime_compat_hook import install_runtime_compatibility
     from gui.diagnostic_compare_hook import install_diagnostic_compare
     from gui.runtime_log_hook import install_runtime_log_analysis
+    from gui.patch_update_hook import install_patch_update_ui
 
     install_runtime_compatibility(MainWindow)
     install_diagnostic_compare(MainWindow)
     install_runtime_log_analysis(MainWindow)
+    install_patch_update_ui(MainWindow)
 
     qt_app = QApplication.instance() or QApplication(sys.argv)
     window = MainWindow()
