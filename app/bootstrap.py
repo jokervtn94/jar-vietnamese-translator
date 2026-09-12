@@ -15,6 +15,9 @@ def main() -> int:
 
     from PySide6.QtWidgets import QApplication
     from gui.main_window import MainWindow
+    from gui.runtime_compat_hook import install_runtime_compatibility
+
+    install_runtime_compatibility(MainWindow)
 
     qt_app = QApplication.instance() or QApplication(sys.argv)
     window = MainWindow()
