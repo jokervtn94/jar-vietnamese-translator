@@ -8,6 +8,7 @@ from core.runtime_diagnosis_summary import (
     format_runtime_diagnosis_summary,
     write_runtime_diagnosis_summary,
 )
+from core.diagnostic_bundle import export_diagnostic_bundle
 
 
 def _report_value(report, name, default=None):
@@ -51,13 +52,23 @@ def install_runtime_log_analysis(MainWindow):
         self.runtime_log_export_btn.clicked.connect(self._export_runtime_diagnosis)
         grid.addWidget(self.runtime_log_export_btn, 2, 1)
 
+        self.runtime_bundle_export_btn = QPushButton("Export Diagnostic Bundle")
+        self.runtime_bundle_export_btn.setEnabled(False)
+        self.runtime_bundle_export_btn.clicked.connect(self._export_diagnostic_bundle)
+        grid.addWidget(self.runtime_bundle_export_btn, 3, 0, 1, 2)
+
         self.runtime_log_value = QLabel("Chọn file .log/.txt để phân tích lỗi runtime.")
         self.runtime_log_value.setObjectName("Muted")
         self.runtime_log_value.setWordWrap(True)
-        grid.addWidget(self.runtime_log_value, 3, 0, 1, 2)
+        grid.addWidget(self.runtime_log_value, 4, 0, 1, 2)
         self.runtime_log_card = card
         layout = self.right_panel.layout()
         layout.insertWidget(max(0, layout.count() - 2), card)
+
+    def _set_runtime_export_controls(self, enabled):
+        self.runtime_log_copy_btn.setEnabled(enabled)
+        self.runtime_log_export_btn.setEnabled(enabled)
+        self.runtime_bundle_export_btn.setEnabled(enabled)
 
     def _analyze_runtime_log(self):
         selected, _ = QFileDialog.getOpenFileName(self, "Open runtime log", "", "Log files (*.log *.txt);;All files (*)")
@@ -75,8 +86,7 @@ def install_runtime_log_analysis(MainWindow):
             summary = build_runtime_diagnosis_summary(selected, result, timeline)
             self._runtime_diagnosis_summary = summary
             self._runtime_diagnosis_log_path = selected
-            self.runtime_log_copy_btn.setEnabled(True)
-            self.runtime_log_export_btn.setEnabled(True)
+            self._set_runtime_export_controls(True)
 
             text = (
                 format_runtime_diagnosis_summary(summary)
@@ -94,8 +104,7 @@ def install_runtime_log_analysis(MainWindow):
         except Exception as exc:
             self._runtime_diagnosis_summary = None
             self._runtime_diagnosis_log_path = None
-            self.runtime_log_copy_btn.setEnabled(False)
-            self.runtime_log_export_btn.setEnabled(False)
+            self._set_runtime_export_controls(False)
             self.runtime_log_value.setText(f"Không thể phân tích log: {exc}")
 
     def _copy_runtime_diagnosis(self):
@@ -116,8 +125,29 @@ def install_runtime_log_analysis(MainWindow):
         except Exception as exc:
             self.runtime_log_value.setText(f"Không thể xuất diagnosis: {exc}")
 
+    def _export_diagnostic_bundle(self):
+        summary = getattr(self, "_runtime_diagnosis_summary", None)
+        log_path = getattr(self, "_runtime_diagnosis_log_path", None)
+        if summary is None or not log_path:
+            return
+        output_parent = QFileDialog.getExistingDirectory(self, "Export Diagnostic Bundle")
+        if not output_parent:
+            return
+        try:
+            result = export_diagnostic_bundle(
+                output_parent,
+                log_path,
+                summary,
+                getattr(self, "_runtime_compat_export", None),
+            )
+            self.statusBar().showMessage(f"Đã xuất diagnostic bundle: {result.directory.name}", 9000)
+        except Exception as exc:
+            self.runtime_log_value.setText(f"Không thể xuất diagnostic bundle: {exc}")
+
     MainWindow.__init__ = hooked_init
     MainWindow._analyze_runtime_log = _analyze_runtime_log
+    MainWindow._set_runtime_export_controls = _set_runtime_export_controls
     MainWindow._copy_runtime_diagnosis = _copy_runtime_diagnosis
     MainWindow._export_runtime_diagnosis = _export_runtime_diagnosis
+    MainWindow._export_diagnostic_bundle = _export_diagnostic_bundle
     return MainWindow
