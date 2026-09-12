@@ -37,7 +37,13 @@ def test_build_readiness_surfaces_rg35xx_wma_risk(tmp_path, monkeypatch):
         ),
     )
 
-    string = SimpleNamespace(key="k1", kind="class", value="Start")
+    string = SimpleNamespace(
+        key="k1",
+        kind="class",
+        value="Start",
+        source="game/Main.class",
+        encoding="utf-8",
+    )
     result = SimpleNamespace(
         jar_path=str(jar),
         all_strings=lambda: [("game/Main.class", string)],
