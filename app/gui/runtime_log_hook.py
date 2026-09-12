@@ -10,6 +10,7 @@ from core.runtime_diagnosis_summary import (
     write_runtime_diagnosis_summary,
 )
 from core.diagnostic_bundle import export_diagnostic_bundle, export_diagnostic_bundle_zip
+from gui.diagnostic_bundle_inspector_hook import install_diagnostic_bundle_inspector
 
 
 def _report_value(report, name, default=None):
@@ -177,4 +178,5 @@ def install_runtime_log_analysis(MainWindow):
     MainWindow._export_runtime_diagnosis = _export_runtime_diagnosis
     MainWindow._export_diagnostic_bundle = _export_diagnostic_bundle
     MainWindow._export_diagnostic_bundle_zip = _export_diagnostic_bundle_zip
+    install_diagnostic_bundle_inspector(MainWindow)
     return MainWindow
