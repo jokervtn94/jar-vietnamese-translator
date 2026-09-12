@@ -6,6 +6,7 @@ from pathlib import Path
 from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.glyph_analyzer import GlyphAnalyzer
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
+from core.startup_blocking_assessment import assess_startup_blocking
 
 @dataclass
 class ReadinessIssue:
@@ -29,6 +30,8 @@ class BuildReadinessReport:
     target_profile: str = "FreeJ2ME / RG35XX"
     activation_risk: str = "unknown"
     activation_score: int = 0
+    startup_classification: str = "compatible_or_unknown"
+    startup_severity: str = "low"
     glyph_risk: str = "unknown"
     issues: List[ReadinessIssue] = field(default_factory=list)
 
@@ -99,8 +102,6 @@ class BuildReadinessAnalyzer:
             endpoint=(" Endpoints: " + ", ".join(targets[:5]) + ".") if targets else ""
             r.issues.append(ReadinessIssue("WARNING","wma_sms","FreeJ2ME / RG35XX","Legacy WMA/SMS dependency detected. Real SMS transport must remain disabled; blocked transport must not be treated as successful activation." + endpoint))
 
-        # Read-only activation/payment-flow diagnostics. This does not bypass or patch
-        # activation. It distinguishes a missing WMA API from a likely application gate.
         try:
             activation=ActivationFlowAnalyzer().analyze(result.jar_path)
             r.activation_risk=activation.risk
@@ -122,8 +123,20 @@ class BuildReadinessAnalyzer:
                 ))
             else:
                 r.issues.append(ReadinessIssue("INFO","activation","JAR","No strong legacy activation/payment-flow indicators were detected."))
+
+            assessment=assess_startup_blocking(runtime,activation)
+            r.startup_classification=assessment.classification
+            r.startup_severity=assessment.severity
+            reason_text="; ".join(assessment.reasons[:4]) or "no strong startup blocker evidence"
+            r.issues.append(ReadinessIssue(
+                "WARNING" if assessment.severity in {"medium","high"} else "INFO",
+                "startup_assessment","FreeJ2ME / RG35XX",
+                f"{assessment.title}: {reason_text}. {assessment.recommendation}"
+            ))
         except Exception as e:
             r.activation_risk="unknown"
+            r.startup_classification="unknown"
+            r.startup_severity="unknown"
             r.issues.append(ReadinessIssue("WARNING","activation","JAR",f"Activation/payment flow scan could not complete: {e}"))
 
         glyph=GlyphAnalyzer().analyze(result.jar_path,result,project)
