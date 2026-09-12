@@ -9,7 +9,7 @@ from core.runtime_diagnosis_summary import (
     format_runtime_diagnosis_summary,
     write_runtime_diagnosis_summary,
 )
-from core.diagnostic_bundle import export_diagnostic_bundle
+from core.diagnostic_bundle import export_diagnostic_bundle, export_diagnostic_bundle_zip
 
 
 def _report_value(report, name, default=None):
@@ -56,7 +56,12 @@ def install_runtime_log_analysis(MainWindow):
         self.runtime_bundle_export_btn = QPushButton("Export Diagnostic Bundle")
         self.runtime_bundle_export_btn.setEnabled(False)
         self.runtime_bundle_export_btn.clicked.connect(self._export_diagnostic_bundle)
-        grid.addWidget(self.runtime_bundle_export_btn, 3, 0, 1, 2)
+        grid.addWidget(self.runtime_bundle_export_btn, 3, 0)
+
+        self.runtime_bundle_zip_btn = QPushButton("Export Bundle ZIP")
+        self.runtime_bundle_zip_btn.setEnabled(False)
+        self.runtime_bundle_zip_btn.clicked.connect(self._export_diagnostic_bundle_zip)
+        grid.addWidget(self.runtime_bundle_zip_btn, 3, 1)
 
         self.runtime_log_value = QLabel("Chọn file .log/.txt để phân tích lỗi runtime.")
         self.runtime_log_value.setObjectName("Muted")
@@ -70,6 +75,7 @@ def install_runtime_log_analysis(MainWindow):
         self.runtime_log_copy_btn.setEnabled(enabled)
         self.runtime_log_export_btn.setEnabled(enabled)
         self.runtime_bundle_export_btn.setEnabled(enabled)
+        self.runtime_bundle_zip_btn.setEnabled(enabled)
 
     def _analyze_runtime_log(self):
         selected, _ = QFileDialog.getOpenFileName(self, "Open runtime log", "", "Log files (*.log *.txt);;All files (*)")
@@ -145,10 +151,30 @@ def install_runtime_log_analysis(MainWindow):
         except Exception as exc:
             self.runtime_log_value.setText(f"Không thể xuất diagnostic bundle: {exc}")
 
+    def _export_diagnostic_bundle_zip(self):
+        summary = getattr(self, "_runtime_diagnosis_summary", None)
+        log_path = getattr(self, "_runtime_diagnosis_log_path", None)
+        if summary is None or not log_path:
+            return
+        output_parent = QFileDialog.getExistingDirectory(self, "Export Diagnostic Bundle ZIP")
+        if not output_parent:
+            return
+        try:
+            result = export_diagnostic_bundle_zip(
+                output_parent,
+                log_path,
+                summary,
+                getattr(self, "_runtime_compat_export", None),
+            )
+            self.statusBar().showMessage(f"Đã xuất diagnostic ZIP: {result.zip_path.name}", 9000)
+        except Exception as exc:
+            self.runtime_log_value.setText(f"Không thể xuất diagnostic ZIP: {exc}")
+
     MainWindow.__init__ = hooked_init
     MainWindow._analyze_runtime_log = _analyze_runtime_log
     MainWindow._set_runtime_export_controls = _set_runtime_export_controls
     MainWindow._copy_runtime_diagnosis = _copy_runtime_diagnosis
     MainWindow._export_runtime_diagnosis = _export_runtime_diagnosis
     MainWindow._export_diagnostic_bundle = _export_diagnostic_bundle
+    MainWindow._export_diagnostic_bundle_zip = _export_diagnostic_bundle_zip
     return MainWindow
