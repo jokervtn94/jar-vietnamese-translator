@@ -1,0 +1,31 @@
+name: Inspect staged delta
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [sync-latest-20260912]
+    paths:
+      - '.github/workflows/inspect_delta.yml'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sync-latest-20260912
+      - name: Decode and inspect delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/delta.part* | tr -d '\r\n' | base64 --decode > /tmp/delta.bin
+          file /tmp/delta.bin
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path('/tmp/delta.bin')
+          print('bytes', p.stat().st_size)
+          print('sha256', hashlib.sha256(p.read_bytes()).hexdigest())
+          print('magic', p.read_bytes()[:32])
+          PY
+          tar -tzf /tmp/delta.bin | sed -n '1,200p'
