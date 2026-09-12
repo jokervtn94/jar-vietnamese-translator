@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 # Portable hook intentionally mirrors the development hook semantically.
-from PySide6.QtWidgets import QFileDialog, QFrame, QGridLayout, QLabel, QPushButton
+from PySide6.QtWidgets import QApplication, QFileDialog, QFrame, QGridLayout, QLabel, QPushButton
 from core.runtime_log_correlator import correlate_runtime_log, format_runtime_log_correlation, load_log
 from core.runtime_exception_timeline import build_exception_timeline, format_exception_timeline
+from core.runtime_diagnosis_summary import (
+    build_runtime_diagnosis_summary,
+    format_runtime_diagnosis_summary,
+    write_runtime_diagnosis_summary,
+)
 
 
 def _report_value(report, name, default=None):
@@ -22,6 +27,9 @@ def install_runtime_log_analysis(MainWindow):
 
     def hooked_init(self, *args, **kwargs):
         original_init(self, *args, **kwargs)
+        self._runtime_diagnosis_summary = None
+        self._runtime_diagnosis_log_path = None
+
         card = QFrame()
         card.setObjectName("InnerCard")
         grid = QGridLayout(card)
@@ -29,13 +37,25 @@ def install_runtime_log_analysis(MainWindow):
         title = QLabel("Runtime Log Diagnostic")
         title.setObjectName("PanelTitle")
         grid.addWidget(title, 0, 0, 1, 2)
+
         self.runtime_log_btn = QPushButton("Open log file")
         self.runtime_log_btn.clicked.connect(self._analyze_runtime_log)
         grid.addWidget(self.runtime_log_btn, 1, 0, 1, 2)
+
+        self.runtime_log_copy_btn = QPushButton("Copy runtime diagnosis")
+        self.runtime_log_copy_btn.setEnabled(False)
+        self.runtime_log_copy_btn.clicked.connect(self._copy_runtime_diagnosis)
+        grid.addWidget(self.runtime_log_copy_btn, 2, 0)
+
+        self.runtime_log_export_btn = QPushButton("Export diagnosis TXT")
+        self.runtime_log_export_btn.setEnabled(False)
+        self.runtime_log_export_btn.clicked.connect(self._export_runtime_diagnosis)
+        grid.addWidget(self.runtime_log_export_btn, 2, 1)
+
         self.runtime_log_value = QLabel("Chọn file .log/.txt để phân tích lỗi runtime.")
         self.runtime_log_value.setObjectName("Muted")
         self.runtime_log_value.setWordWrap(True)
-        grid.addWidget(self.runtime_log_value, 2, 0, 1, 2)
+        grid.addWidget(self.runtime_log_value, 3, 0, 1, 2)
         self.runtime_log_card = card
         layout = self.right_panel.layout()
         layout.insertWidget(max(0, layout.count() - 2), card)
@@ -53,7 +73,19 @@ def install_runtime_log_analysis(MainWindow):
                 startup_path=_report_value(report, "startup_path", []) or [],
                 matched_apis=result.matched_apis,
             )
-            text = format_runtime_log_correlation(result) + "\n\n" + format_exception_timeline(timeline)
+            summary = build_runtime_diagnosis_summary(selected, result, timeline)
+            self._runtime_diagnosis_summary = summary
+            self._runtime_diagnosis_log_path = selected
+            self.runtime_log_copy_btn.setEnabled(True)
+            self.runtime_log_export_btn.setEnabled(True)
+
+            text = (
+                format_runtime_diagnosis_summary(summary)
+                + "\n\n"
+                + format_runtime_log_correlation(result)
+                + "\n\n"
+                + format_exception_timeline(timeline)
+            )
             self.runtime_log_value.setText(text)
             primary = timeline.primary
             if primary is not None:
@@ -61,8 +93,32 @@ def install_runtime_log_analysis(MainWindow):
             else:
                 self.statusBar().showMessage(result.probable_cause, 9000)
         except Exception as exc:
+            self._runtime_diagnosis_summary = None
+            self._runtime_diagnosis_log_path = None
+            self.runtime_log_copy_btn.setEnabled(False)
+            self.runtime_log_export_btn.setEnabled(False)
             self.runtime_log_value.setText(f"Không thể phân tích log: {exc}")
+
+    def _copy_runtime_diagnosis(self):
+        summary = getattr(self, "_runtime_diagnosis_summary", None)
+        if summary is None:
+            return
+        QApplication.clipboard().setText(format_runtime_diagnosis_summary(summary))
+        self.statusBar().showMessage("Đã copy runtime diagnosis summary", 6000)
+
+    def _export_runtime_diagnosis(self):
+        summary = getattr(self, "_runtime_diagnosis_summary", None)
+        log_path = getattr(self, "_runtime_diagnosis_log_path", None)
+        if summary is None or not log_path:
+            return
+        try:
+            target = write_runtime_diagnosis_summary(log_path, summary)
+            self.statusBar().showMessage(f"Đã xuất runtime diagnosis: {target.name}", 8000)
+        except Exception as exc:
+            self.runtime_log_value.setText(f"Không thể xuất diagnosis: {exc}")
 
     MainWindow.__init__ = hooked_init
     MainWindow._analyze_runtime_log = _analyze_runtime_log
+    MainWindow._copy_runtime_diagnosis = _copy_runtime_diagnosis
+    MainWindow._export_runtime_diagnosis = _export_runtime_diagnosis
     return MainWindow
