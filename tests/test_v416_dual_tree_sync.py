@@ -15,6 +15,7 @@ MIRRORED_MODULES = (
     "core/compatibility_analyzer.py",
     "core/build_readiness.py",
     "core/runtime_compat_presenter.py",
+    "core/activation_flow_analyzer.py",
     "gui/runtime_compat_hook.py",
     "gui/task_progress_dialog.py",
 )
