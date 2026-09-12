@@ -144,6 +144,22 @@ class BuildTaskDialog(QDialog):
         prefix = {"warning": "⚠", "error": "✖", "success": "✓"}.get(level, "•")
         stamp = time.strftime("%H:%M:%S")
         self.log.append(f"[{stamp}] {prefix} {message}")
+
+        runtime_markers = (
+            "WMA/SMS",
+            "Unsupported API dependencies",
+            "Conditional API dependencies",
+            "Target runtime score",
+            "FreeJ2ME / RG35XX",
+        )
+        if message and any(marker in message for marker in runtime_markers):
+            runtime_level = level
+            if runtime_level == "info" and (
+                "WMA/SMS" in message or "Unsupported API dependencies" in message
+            ):
+                runtime_level = "warning"
+            self.set_runtime_summary(message, runtime_level)
+
         bar = self.log.verticalScrollBar()
         bar.setValue(bar.maximum())
 
