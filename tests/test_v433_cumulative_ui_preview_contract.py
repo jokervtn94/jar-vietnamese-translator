@@ -7,13 +7,17 @@ def test_cumulative_ui_preview_contract_without_importing_qt():
 
     assert root == portable
     for text in (root, portable):
-        assert 'f"{APP_NAME} v{APP_VERSION}-cumulative (Portable)"' in text
+        assert 'self.setWindowTitle(APP_NAME)' in text
+        assert 'self.app_title.setText(APP_NAME)' in text
+        assert 'f"{APP_NAME} v{APP_VERSION}' not in text
+        assert 'cumulative (Portable)' not in text
         assert 'label.setText("Diagnostics Center")' in text
-        assert 'label.setText("v4.31 cumulative")' in text
+        assert 'label.setText(APP_VERSION)' in text
         assert 'layout.insertWidget(max(0, build_index), nav, 0)' in text
         assert 'layout.insertWidget(max(0, build_index), patch, 0)' in text
         assert '#ECFDF5' in text
-        assert 'Phiên bản {APP_VERSION}-cumulative (v431)' in text
+        assert 'Phiên bản {APP_VERSION}' in text
+        assert 'Phiên bản {APP_VERSION}-cumulative' not in text
 
 
 def test_portable_bootstrap_installs_polish_after_patch_ui():
