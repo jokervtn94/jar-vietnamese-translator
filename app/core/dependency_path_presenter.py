@@ -11,7 +11,8 @@ def summarize_dependency_path(flow_report) -> str:
         if getattr(item, "startup_reachable", False)
     ]
     if reachable:
-        path = " -> ".join(reachable[0].path)
+        best = max(reachable, key=lambda item: (len(getattr(item, "path", []) or []), getattr(item, "target", "")))
+        path = " -> ".join(best.path)
         return "Startup reachable: " + path
 
     roots = getattr(dependency, "roots", [])
