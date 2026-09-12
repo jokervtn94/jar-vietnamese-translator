@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+# Portable workspace mirrors the development workspace semantically.
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QSizePolicy,
+    QStackedWidget,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -32,7 +35,7 @@ def _page(card):
 
 
 def install_diagnostics_workspace(MainWindow):
-    """Group diagnostics cards into one integrated tabbed workspace."""
+    """Promote diagnostics from sidebar cards into a dedicated full-width page."""
     if getattr(MainWindow, "_diagnostics_workspace_hook_installed", False):
         return MainWindow
     MainWindow._diagnostics_workspace_hook_installed = True
@@ -46,10 +49,13 @@ def install_diagnostics_workspace(MainWindow):
             "runtime_log_card",
             "diagnostic_compare_card",
             "diagnostic_bundle_inspector_card",
+            "workspace",
+            "build_jar_btn",
         )
         if not all(hasattr(self, name) for name in required):
             return
 
+        # Remove legacy diagnostic cards from the narrow translation editor sidebar.
         right_layout = self.right_panel.layout()
         cards = [
             self.runtime_compat_card,
@@ -60,30 +66,51 @@ def install_diagnostics_workspace(MainWindow):
         for card in cards:
             right_layout.removeWidget(card)
 
-        workspace = QFrame()
-        workspace.setObjectName("DiagnosticsWorkspace")
-        workspace.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        root = QVBoxLayout(workspace)
-        root.setContentsMargins(12, 12, 12, 12)
-        root.setSpacing(10)
+        # Turn the application's work area into two first-class pages:
+        # translation workspace and full-width diagnostics center.
+        translation_page = self.workspace.parentWidget()
+        host = translation_page.parentWidget()
+        host_layout = host.layout()
+        work_index = host_layout.indexOf(translation_page)
 
-        header = QHBoxLayout()
-        header.setContentsMargins(0, 0, 0, 0)
-        header.setSpacing(8)
+        stack = QStackedWidget()
+        stack.setObjectName("MainWorkspaceStack")
+        stack.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        host_layout.removeWidget(translation_page)
+        host_layout.insertWidget(work_index, stack, 1)
+        stack.addWidget(translation_page)
+
+        diagnostics_page = QWidget()
+        diagnostics_page.setObjectName("DiagnosticsPage")
+        page_layout = QVBoxLayout(diagnostics_page)
+        page_layout.setContentsMargins(18, 16, 18, 16)
+        page_layout.setSpacing(12)
+
+        top = QFrame()
+        top.setObjectName("DiagnosticsTopBar")
+        top_layout = QHBoxLayout(top)
+        top_layout.setContentsMargins(16, 12, 16, 12)
+        top_layout.setSpacing(10)
+
         title_stack = QVBoxLayout()
         title_stack.setContentsMargins(0, 0, 0, 0)
-        title_stack.setSpacing(1)
+        title_stack.setSpacing(2)
         title = QLabel("Diagnostics & Compatibility")
         title.setObjectName("DiagnosticsTitle")
-        subtitle = QLabel("JAR → Compatibility → Runtime log → Compare → Bundle")
+        subtitle = QLabel("Phân tích tương thích · Runtime log · Compare · Diagnostic bundle")
         subtitle.setObjectName("DiagnosticsSubtitle")
         title_stack.addWidget(title)
         title_stack.addWidget(subtitle)
-        header.addLayout(title_stack, 1)
+        top_layout.addLayout(title_stack, 1)
+
         badge = QLabel("Integrated")
         badge.setObjectName("DiagnosticsBadge")
-        header.addWidget(badge, 0)
-        root.addLayout(header)
+        top_layout.addWidget(badge)
+
+        back_btn = QPushButton("← Quay lại dịch")
+        back_btn.setObjectName("DiagnosticsBackButton")
+        top_layout.addWidget(back_btn)
+        page_layout.addWidget(top)
 
         tabs = QTabWidget()
         tabs.setObjectName("DiagnosticsTabs")
@@ -94,18 +121,46 @@ def install_diagnostics_workspace(MainWindow):
         tabs.addTab(_page(self.runtime_log_card), "Runtime Log")
         tabs.addTab(_page(self.diagnostic_compare_card), "Compare")
         tabs.addTab(_page(self.diagnostic_bundle_inspector_card), "Bundle")
-        root.addWidget(tabs, 1)
+        page_layout.addWidget(tabs, 1)
+        stack.addWidget(diagnostics_page)
 
-        workspace.setStyleSheet(
+        # Persistent, visible navigation in the main workflow header.
+        header = self.build_jar_btn.parentWidget()
+        header_layout = header.layout()
+        diagnostics_btn = QPushButton("Diagnostics")
+        diagnostics_btn.setObjectName("DiagnosticsNavButton")
+        diagnostics_btn.setFixedHeight(42)
+        build_index = header_layout.indexOf(self.build_jar_btn)
+        header_layout.insertWidget(max(0, build_index), diagnostics_btn, 0)
+
+        def show_diagnostics():
+            stack.setCurrentWidget(diagnostics_page)
+            diagnostics_btn.setProperty("active", True)
+            diagnostics_btn.style().unpolish(diagnostics_btn)
+            diagnostics_btn.style().polish(diagnostics_btn)
+
+        def show_translation():
+            stack.setCurrentWidget(translation_page)
+            diagnostics_btn.setProperty("active", False)
+            diagnostics_btn.style().unpolish(diagnostics_btn)
+            diagnostics_btn.style().polish(diagnostics_btn)
+
+        diagnostics_btn.clicked.connect(show_diagnostics)
+        back_btn.clicked.connect(show_translation)
+
+        diagnostics_page.setStyleSheet(
             """
-            QFrame#DiagnosticsWorkspace {
+            QWidget#DiagnosticsPage {
+                background: #F7F8FA;
+            }
+            QFrame#DiagnosticsTopBar {
                 background: #FFFFFF;
                 border: 1px solid #E5E7EB;
                 border-radius: 14px;
             }
             QLabel#DiagnosticsTitle {
                 color: #111827;
-                font-size: 15px;
+                font-size: 18px;
                 font-weight: 700;
                 border: none;
                 background: transparent;
@@ -121,22 +176,27 @@ def install_diagnostics_workspace(MainWindow):
                 background: #EFF6FF;
                 border: 1px solid #DBEAFE;
                 border-radius: 9px;
-                padding: 4px 8px;
+                padding: 5px 9px;
                 font-weight: 600;
             }
+            QPushButton#DiagnosticsBackButton {
+                min-height: 32px;
+                padding: 0 12px;
+            }
             QTabWidget#DiagnosticsTabs::pane {
-                border: none;
-                background: transparent;
-                top: 6px;
+                border: 1px solid #E5E7EB;
+                border-radius: 12px;
+                background: #FFFFFF;
+                top: 8px;
             }
             QTabWidget#DiagnosticsTabs QTabBar::tab {
                 color: #4B5563;
-                background: #F3F4F6;
+                background: #EDEFF3;
                 border: none;
                 border-radius: 8px;
-                padding: 7px 12px;
-                margin-right: 4px;
-                min-width: 72px;
+                padding: 9px 16px;
+                margin-right: 5px;
+                min-width: 90px;
             }
             QTabWidget#DiagnosticsTabs QTabBar::tab:selected {
                 color: #1D4ED8;
@@ -144,23 +204,48 @@ def install_diagnostics_workspace(MainWindow):
                 font-weight: 700;
             }
             QTabWidget#DiagnosticsTabs QTabBar::tab:hover:!selected {
-                background: #E5E7EB;
+                background: #E2E5EA;
             }
             """
         )
 
-        self.diagnostics_workspace = workspace
+        diagnostics_btn.setStyleSheet(
+            """
+            QPushButton#DiagnosticsNavButton {
+                color: #1D4ED8;
+                background: #EFF6FF;
+                border: 1px solid #DBEAFE;
+                border-radius: 9px;
+                padding: 0 14px;
+                font-weight: 700;
+            }
+            QPushButton#DiagnosticsNavButton:hover,
+            QPushButton#DiagnosticsNavButton[active="true"] {
+                background: #DBEAFE;
+                border-color: #BFDBFE;
+            }
+            """
+        )
+
+        self.main_workspace_stack = stack
+        self.translation_workspace_page = translation_page
+        self.diagnostics_page = diagnostics_page
         self.diagnostics_tabs = tabs
-        insert_at = max(0, right_layout.count() - 2)
-        right_layout.insertWidget(insert_at, workspace, 1)
+        self.diagnostics_nav_btn = diagnostics_btn
+        self._show_diagnostics_page = show_diagnostics
+        self._show_translation_page = show_translation
+
+        show_translation()
 
     def _diagnostics_show_tab(self, name):
         tabs = getattr(self, "diagnostics_tabs", None)
-        if tabs is None:
+        show_page = getattr(self, "_show_diagnostics_page", None)
+        if tabs is None or show_page is None:
             return
         index = _TAB_INDEX.get(str(name).lower())
         if index is not None:
             tabs.setCurrentIndex(index)
+        show_page()
 
     MainWindow.__init__ = hooked_init
     MainWindow._diagnostics_show_tab = _diagnostics_show_tab
