@@ -7,6 +7,7 @@ from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.glyph_analyzer import GlyphAnalyzer
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
 from core.startup_blocking_assessment import assess_startup_blocking
+from core.compatibility_report import CompatibilityReportExporter
 
 @dataclass
 class ReadinessIssue:
@@ -32,6 +33,7 @@ class BuildReadinessReport:
     activation_score: int = 0
     startup_classification: str = "compatible_or_unknown"
     startup_severity: str = "low"
+    recommended_action: str = ""
     glyph_risk: str = "unknown"
     issues: List[ReadinessIssue] = field(default_factory=list)
 
@@ -133,6 +135,16 @@ class BuildReadinessAnalyzer:
                 "startup_assessment","FreeJ2ME / RG35XX",
                 f"{assessment.title}: {reason_text}. {assessment.recommendation}"
             ))
+
+            export=CompatibilityReportExporter().build(result.jar_path,runtime,activation)
+            if export.recommended_actions:
+                top=export.recommended_actions[0]
+                r.recommended_action=f"P{top.priority} · {top.title}: {top.detail}"
+                r.issues.append(ReadinessIssue(
+                    "WARNING" if top.priority <= 2 else "INFO",
+                    "recommended_action","FreeJ2ME / RG35XX",
+                    r.recommended_action,
+                ))
         except Exception as e:
             r.activation_risk="unknown"
             r.startup_classification="unknown"
