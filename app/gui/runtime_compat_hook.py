@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from PySide6.QtCore import QThread, Signal
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDialog, QMessageBox
 
 from core.compatibility_analyzer import CompatibilityAnalyzer
 from core.runtime_compat_presenter import summarize_runtime
 from core.activation_flow_analyzer import ActivationFlowAnalyzer
 from core.dependency_path_presenter import summarize_dependency_path
 from core.startup_blocking_assessment import assess_startup_blocking
+from core.compatibility_report import CompatibilityReportExporter
 
 
 class RuntimeCompatibilityWorker(QThread):
@@ -113,12 +116,18 @@ def install_runtime_compatibility(MainWindow):
             grid.addWidget(key, row, 0)
             grid.addWidget(widget, row, 1)
 
+        self.runtime_export_btn = QPushButton("Xuất report JSON + TXT")
+        self.runtime_export_btn.setEnabled(False)
+        self.runtime_export_btn.clicked.connect(self._export_runtime_compat_report)
+        grid.addWidget(self.runtime_export_btn, len(rows) + 1, 0, 1, 2)
+
         self.runtime_compat_card = card
         right_layout = self.right_panel.layout()
         insert_at = max(0, right_layout.count() - 2)
         right_layout.insertWidget(insert_at, card)
 
     def _runtime_compat_set_pending(self):
+        self.runtime_export_btn.setEnabled(False)
         self.runtime_score_value.setText("…")
         self.runtime_risk_value.setText("Đang phân tích")
         self.runtime_api_value.setText("Đang quét bytecode / optional API…")
@@ -197,12 +206,39 @@ def install_runtime_compatibility(MainWindow):
         else:
             self.runtime_blocker_value.setStyleSheet("color:#059669; font-weight:600;")
 
+        self.runtime_export_btn.setEnabled(True)
         self.statusBar().showMessage(
             f"RG35XX: {summary.score}/100 · {summary.risk.upper()} · {assessment.title}",
             9000,
         )
 
+    def _export_runtime_compat_report(self):
+        report = getattr(self, "_runtime_compat_report", None)
+        flow = getattr(self, "_activation_flow_report", None)
+        if report is None or flow is None or not self.result:
+            return
+        jar_path = Path(self.result.jar_path)
+        default_base = str(jar_path.with_name(jar_path.stem + "_compatibility_report"))
+        selected, _ = QFileDialog.getSaveFileName(
+            self,
+            "Xuất Compatibility Report",
+            default_base,
+            "Compatibility report (*.compat.json);;Tất cả file (*)",
+        )
+        if not selected:
+            return
+        try:
+            exporter = CompatibilityReportExporter()
+            export = exporter.build(str(jar_path), report.runtime, flow)
+            json_path, txt_path = exporter.write_pair(selected, export)
+            self.statusBar().showMessage(
+                f"Đã xuất report: {json_path.name} + {txt_path.name}", 9000
+            )
+        except Exception as exc:
+            QMessageBox.warning(self, "Xuất report", f"Không thể xuất report:\n{exc}")
+
     def _runtime_compat_failed(self, message):
+        self.runtime_export_btn.setEnabled(False)
         self.runtime_score_value.setText("—")
         self.runtime_risk_value.setText("Không phân tích được")
         self.runtime_api_value.setText(message)
@@ -226,4 +262,5 @@ def install_runtime_compatibility(MainWindow):
     MainWindow._runtime_compat_done = _runtime_compat_done
     MainWindow._runtime_compat_failed = _runtime_compat_failed
     MainWindow._runtime_compat_release = _runtime_compat_release
+    MainWindow._export_runtime_compat_report = _export_runtime_compat_report
     return MainWindow
