@@ -20,12 +20,14 @@ def main() -> int:
     from gui.runtime_log_hook import install_runtime_log_analysis
     from gui.patch_update_hook import install_patch_update_ui
     from gui.cumulative_ui_polish_hook import install_cumulative_ui_polish
+    from gui.latest_translation_ui_hook import install_latest_translation_ui
 
     install_runtime_compatibility(MainWindow)
     install_diagnostic_compare(MainWindow)
     install_runtime_log_analysis(MainWindow)
     install_patch_update_ui(MainWindow)
     install_cumulative_ui_polish(MainWindow)
+    install_latest_translation_ui(MainWindow)
 
     qt_app = QApplication.instance() or QApplication(sys.argv)
     window = MainWindow()
