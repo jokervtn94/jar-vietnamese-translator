@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set
 import zipfile
 
+from core.runtime_profiles import ProfileAssessment, assess_profile
+
 
 API_SIGNATURES = {
     "wma_sms": (
@@ -38,6 +40,9 @@ class RuntimeApiReport:
     api_sources: Dict[str, List[str]] = field(default_factory=dict)
     sms_targets: List[str] = field(default_factory=list)
     findings: List[RuntimeApiFinding] = field(default_factory=list)
+    rg35xx: ProfileAssessment = field(
+        default_factory=lambda: assess_profile(set(), "freej2me_rg35xx")
+    )
 
     @property
     def uses_wma_sms(self) -> bool:
@@ -118,7 +123,11 @@ class RuntimeApiAnalyzer:
             source = ", ".join(report.api_sources.get("wma_sms", [])[:3]) or "JAR"
             report.findings.append(RuntimeApiFinding(
                 "wma_sms", "high", source,
-                "JSR-120/205 WMA-SMS dependency detected. FreeJ2ME may fail with ClassNotFound/NoClassDefFoundError when WMA is unavailable; legacy activation may also block startup."
+                "JSR-120/205 WMA-SMS dependency detected. FreeJ2ME may fail with ClassNotFound/NoClassDefFoundError when WMA is unavailable. Legacy activation can also stop startup."
+            ))
+            report.findings.append(RuntimeApiFinding(
+                "wma_policy", "medium", "FreeJ2ME / RG35XX",
+                "Recommended handling: report the dependency and deny real SMS transport. Do not treat a blocked transport as a successful activation."
             ))
             if report.sms_targets:
                 report.findings.append(RuntimeApiFinding(
@@ -159,9 +168,27 @@ class RuntimeApiAnalyzer:
 
         report.compatibility_score = max(0, score)
         report.runtime_risk = "high" if "high" in severities else ("medium" if "medium" in severities else "low")
-        if not report.findings:
+
+        # Always evaluate the same JAR against the concrete handheld target used by this project.
+        report.rg35xx = assess_profile(report.detected_apis, "freej2me_rg35xx")
+        report.findings.append(RuntimeApiFinding(
+            "target_profile", report.rg35xx.risk, "FreeJ2ME / RG35XX",
+            f"Target score: {report.rg35xx.score}/100; unsupported={','.join(report.rg35xx.unsupported) or 'none'}; conditional={','.join(report.rg35xx.conditional) or 'none'}."
+        ))
+        for note in report.rg35xx.notes:
+            report.findings.append(RuntimeApiFinding(
+                "target_profile", "medium" if report.rg35xx.risk != "low" else "low", "FreeJ2ME / RG35XX", note
+            ))
+
+        # Target-specific risk can raise the generic static-analysis risk.
+        rank = {"low": 0, "medium": 1, "high": 2}
+        if rank.get(report.rg35xx.risk, 0) > rank.get(report.runtime_risk, 0):
+            report.runtime_risk = report.rg35xx.risk
+        report.compatibility_score = min(report.compatibility_score, report.rg35xx.score)
+
+        if not report.detected_apis:
             report.findings.append(RuntimeApiFinding(
                 "runtime", "low", "JAR",
-                "No WMA/SMS or known vendor-specific API signature was detected in class files."
+                "No WMA/SMS or known vendor-specific/optional API signature was detected in class files."
             ))
         return report
