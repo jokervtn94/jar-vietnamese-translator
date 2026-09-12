@@ -27,6 +27,9 @@ from core.compatibility_report import (
 )
 from core.diagnostic_history import DiagnosticHistoryStore
 
+# Portable hook mirrors the development tree semantically; this comment intentionally
+# triggers a fresh modular-patch build after the headless regression fix.
+
 
 class RuntimeCompatibilityWorker(QThread):
     completed = Signal(object, object, object)
