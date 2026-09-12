@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "baseline_name": "Cumulative Modular Baseline",
+  "app_version": "4.31",
+  "patch_level": "v431",
+  "base_commit": "c74db123f33f97f88335215aeb288ed09ead984e",
+  "integrated_through": "13c0567e7e522bdafb6da552adc16491361d5dc9",
+  "commit_distance": 186,
+  "policy": "All completed modular patches listed here are part of the portable baseline and do not need to be reapplied to a fresh 4.31 portable build.",
+  "groups": [
+    {
+      "id": "runtime-api-compatibility",
+      "title": "J2ME runtime API compatibility scan",
+      "representative_commit": "64120578e048c9c1253f13b76ffa317b7347de7b",
+      "includes": ["WMA/messaging detection", "JSR/vendor API detection", "manifest MIDP/CLDC analysis"]
+    },
+    {
+      "id": "rg35xx-profile",
+      "title": "FreeJ2ME / RG35XX runtime profile",
+      "representative_commit": "a3cef17cdd567c7ed2312b543d0e0375f6403d00",
+      "includes": ["native/conditional/unsupported API policy", "safe messaging transport policy"]
+    },
+    {
+      "id": "startup-analysis",
+      "title": "Activation, dependency and startup blocking analysis",
+      "includes": ["activation/payment indicator scan", "class dependency graph", "startup reachability", "startup blocker assessment"]
+    },
+    {
+      "id": "compatibility-reporting",
+      "title": "Compatibility reporting and recommended actions",
+      "includes": ["compatibility JSON/TXT", "diagnostic summary", "recommended actions", "diagnostic history"]
+    },
+    {
+      "id": "diagnostic-compare",
+      "title": "Diagnostic compare, verdict and recommendation",
+      "includes": ["report compare", "IMPROVED/REGRESSED/MIXED/UNCHANGED verdict", "next recommendation"]
+    },
+    {
+      "id": "runtime-log-diagnosis",
+      "title": "FreeJ2ME runtime log diagnosis",
+      "representative_commit": "77aaec471a637f455a1cd094174e48d89da606ca",
+      "includes": ["runtime log correlation", "exception timeline", "root exception", "runtime diagnosis summary"]
+    },
+    {
+      "id": "diagnostic-bundle",
+      "title": "Diagnostic Bundle and single ZIP export",
+      "representative_commit": "057e8981ed5e97aa70133f75bafe06d54b56c3dc",
+      "includes": ["original log preservation", "runtime diagnosis", "compatibility report", "single ZIP export"]
+    },
+    {
+      "id": "bundle-inspector",
+      "title": "Diagnostic Bundle Inspector",
+      "representative_commit": "5cfcd2487f68593a6725dda70987be551f2cab3c",
+      "includes": ["safe ZIP inspection", "bundle summary", "compatibility/runtime reconstruction", "unsafe path rejection"]
+    },
+    {
+      "id": "diagnostics-workspace",
+      "title": "Integrated full-width Diagnostics Center",
+      "representative_commit": "1bfdaf3ff18c5a232d6681339ed2bcbd678518de",
+      "includes": ["Overview", "Runtime Log", "Compare", "Bundle", "full-width workspace navigation"]
+    },
+    {
+      "id": "patch-updater-ui",
+      "title": "Integrated Update Patch UI",
+      "representative_commit": "b773abc6ecd5f0d065df974997abdcd978b42eb6",
+      "includes": ["Apply Update Patch UI", "SHA-256 verification", "transactional backup", "rollback", "patch history"]
+    }
+  ]
+}
