@@ -8,6 +8,9 @@ on:
       - 'launcher.py'
       - 'requirements.txt'
       - 'JAR_Translator.spec'
+      - 'app/core/version.py'
+      - 'config/modules.json'
+      - 'config/integrated_patches.json'
       - '.github/workflows/build_portable.yml'
 
 permissions:
@@ -62,7 +65,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$root/updates" | Out-Null
           New-Item -ItemType Directory -Force -Path "$root/logs" | Out-Null
 
-      - name: Verify modular portable layout
+      - name: Verify cumulative modular portable layout
         shell: pwsh
         run: |
           $root = 'dist/JAR Vietnamese Translator'
@@ -70,10 +73,18 @@ jobs:
             "$root/JAR Vietnamese Translator.exe",
             "$root/app/bootstrap.py",
             "$root/app/core/jar_scanner.py",
+            "$root/app/core/version.py",
             "$root/app/gui/main_window.py",
+            "$root/app/gui/patch_update_hook.py",
             "$root/app/themes/monokai_light.qss",
-            "$root/config/modules.json"
-          ) | ForEach-Object { if (!(Test-Path $_)) { throw "Missing modular file: $_" } }
+            "$root/config/modules.json",
+            "$root/config/integrated_patches.json"
+          ) | ForEach-Object { if (!(Test-Path $_)) { throw "Missing cumulative modular file: $_" } }
+
+          $modules = Get-Content "$root/config/modules.json" -Raw | ConvertFrom-Json
+          if ($modules.app_version -ne '4.31-cumulative') { throw "Unexpected app_version: $($modules.app_version)" }
+          $patches = Get-Content "$root/config/integrated_patches.json" -Raw | ConvertFrom-Json
+          if ($patches.patch_level -ne 'v431') { throw "Unexpected patch level: $($patches.patch_level)" }
 
       - name: Package portable ZIP
         shell: pwsh
@@ -82,16 +93,20 @@ jobs:
           if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
           Copy-Item 'dist/JAR Vietnamese Translator' $portable -Recurse
           @'
-          JAR Vietnamese Translator - Modular Windows Portable
+          JAR Vietnamese Translator 4.31 - Cumulative Modular Windows Portable
 
           Khong can cai Python.
           Chay: JAR Vietnamese Translator.exe
+
+          Baseline nay da tich hop cac patch hoan chinh den patch level v431.
+          Danh sach patch tich hop: config/integrated_patches.json
 
           Quan trong:
           - Runtime nam canh EXE va chi can build lai khi runtime/launcher thay doi.
           - Code chuc nang nam trong app/.
           - Theme nam trong app/themes/.
-          - Patch nho co the thay dung file trong app/ ma khong build lai runtime.
+          - Patch nho moi co the cap nhat file trong app/ ma khong build lai runtime.
+          - Khong can ap dung lai cac patch da co trong integrated_patches.json.
           '@ | Set-Content -Encoding UTF8 "$portable/README_PORTABLE.txt"
           $zip = 'JAR_Vietnamese_Translator_Modular_Windows_Portable.zip'
           if (Test-Path $zip) { Remove-Item $zip -Force }
