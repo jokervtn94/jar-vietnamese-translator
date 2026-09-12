@@ -1,4 +1,4 @@
-name: build-portable-windows
+name: Build Windows Portable
 
 on:
   workflow_dispatch:
@@ -6,8 +6,8 @@ on:
     branches: [main]
     paths:
       - 'app.py'
-      - 'core/**'
       - 'gui/**'
+      - 'core/**'
       - 'models/**'
       - 'exporters/**'
       - 'requirements.txt'
@@ -18,13 +18,17 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-windows-portable:
     runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: '1'
+      QT_QPA_PLATFORM: offscreen
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -34,44 +38,59 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller pytest
+
+      - name: Compile sources
+        shell: pwsh
+        run: python -m compileall -q .
+
+      - name: Run regression tests
+        shell: pwsh
+        run: python -m pytest -q
 
       - name: Build portable app
         shell: pwsh
         run: |
-          if (Test-Path 'JAR_Translator.spec') {
-            pyinstaller --noconfirm --clean JAR_Translator.spec
-          } else {
-            pyinstaller --noconfirm --clean --windowed --name JAR_Vietnamese_Translator app.py
-          }
+          if (Test-Path build) { Remove-Item build -Recurse -Force }
+          if (Test-Path dist) { Remove-Item dist -Recurse -Force }
+          python -m PyInstaller --noconfirm --clean JAR_Translator.spec
 
-      - name: Create portable package
+      - name: Verify portable output
         shell: pwsh
         run: |
-          $out = 'portable-package'
-          New-Item -ItemType Directory -Force -Path $out | Out-Null
-          if (Test-Path 'dist/JAR_Vietnamese_Translator') {
-            Copy-Item 'dist/JAR_Vietnamese_Translator' "$out/JAR_Vietnamese_Translator" -Recurse
-          } elseif (Test-Path 'dist/JAR_Translator') {
-            Copy-Item 'dist/JAR_Translator' "$out/JAR_Translator" -Recurse
-          } else {
-            Copy-Item 'dist/*' $out -Recurse
-          }
+          $exe = 'dist/JAR Vietnamese Translator/JAR Vietnamese Translator.exe'
+          if (!(Test-Path $exe)) { throw "Portable executable was not created: $exe" }
+          Get-Item $exe | Format-List Name,Length,LastWriteTime
+
+      - name: Package portable ZIP
+        shell: pwsh
+        run: |
+          $portable = 'JAR Vietnamese Translator Portable'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item 'dist/JAR Vietnamese Translator/*' $portable -Recurse
           @'
-          JAR Vietnamese Translator V4.6.2 - Windows Portable
+          JAR Vietnamese Translator - Windows Portable
 
           Khong can cai Python.
-          Giai nen toan bo file ZIP truoc khi chay.
-          Mo file .exe trong thu muc portable de khoi dong ung dung.
-          Khong xoa cac thu muc/file nam canh file .exe.
-          '@ | Set-Content -Encoding UTF8 "$out/README_PORTABLE.txt"
-          Compress-Archive -Path "$out/*" -DestinationPath 'JAR_Vietnamese_Translator_V4.6.2_Windows_Portable.zip' -Force
+          1. Giai nen toan bo file ZIP.
+          2. Chay "JAR Vietnamese Translator.exe".
+          3. Khong xoa cac file/thu muc nam canh file EXE.
+
+          Build nay duoc tao tu source tren GitHub Actions va da chay regression tests truoc khi dong goi.
+          '@ | Set-Content -Encoding UTF8 "$portable/README_PORTABLE.txt"
+          $zip = 'JAR_Vietnamese_Translator_Windows_Portable.zip'
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "$portable/*" -DestinationPath $zip -CompressionLevel Optimal
+          (Get-FileHash $zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii 'JAR_Vietnamese_Translator_Windows_Portable.sha256'
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JAR_Vietnamese_Translator_V4.6.2_Windows_Portable
-          path: JAR_Vietnamese_Translator_V4.6.2_Windows_Portable.zip
+          name: JAR_Vietnamese_Translator_Windows_Portable
+          path: |
+            JAR_Vietnamese_Translator_Windows_Portable.zip
+            JAR_Vietnamese_Translator_Windows_Portable.sha256
           if-no-files-found: error
           retention-days: 30
