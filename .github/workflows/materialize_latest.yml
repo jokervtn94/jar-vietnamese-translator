@@ -65,11 +65,16 @@ jobs:
           mkdir -p /tmp/materialized
           unzip -q /tmp/latest_source_bundle.zip -d /tmp/materialized
 
-      - name: Replace branch with exact latest source
+      - name: Replace source while preserving workflow files
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a --delete --exclude='.git/' /tmp/materialized/ ./
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/' \
+            --exclude='.bootstrap/' \
+            /tmp/materialized/ ./
+          rm -rf .bootstrap
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -89,7 +94,7 @@ jobs:
           python -m pytest -q
           python -m compileall -q .
 
-      - name: Commit exact materialized source
+      - name: Commit materialized source
         shell: bash
         run: |
           set -euo pipefail
