@@ -38,12 +38,22 @@ jobs:
             .bootstrap/latestbundle.part010 \
             .bootstrap/latestbundle.part011 \
             .bootstrap/latestbundle.part012 \
-            .bootstrap/missing.part013 \
+            .bootstrap/c013.0 \
+            .bootstrap/c013.1 \
+            .bootstrap/c013.2 \
+            .bootstrap/c013.3 \
+            .bootstrap/c013.4 \
+            .bootstrap/c013.5 \
             .bootstrap/latestbundle.part013 \
             .bootstrap/latestbundle.part014 \
             .bootstrap/latestbundle.part015 \
             .bootstrap/exact.part020 \
-            .bootstrap/exact.part021 \
+            .bootstrap/c021.0 \
+            .bootstrap/c021.1 \
+            .bootstrap/c021.2 \
+            .bootstrap/c021.3 \
+            .bootstrap/c021.4 \
+            .bootstrap/c021.5 \
             .bootstrap/exact.part022 \
             .bootstrap/exact.part023 \
             .bootstrap/missing.part024 \
