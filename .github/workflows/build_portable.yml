@@ -9,6 +9,7 @@ on:
       - 'requirements.txt'
       - 'JAR_Translator.spec'
       - 'app/core/version.py'
+      - 'app/gui/cumulative_ui_polish_hook.py'
       - 'config/modules.json'
       - 'config/integrated_patches.json'
       - '.github/workflows/build_portable.yml'
@@ -76,6 +77,7 @@ jobs:
             "$root/app/core/version.py",
             "$root/app/gui/main_window.py",
             "$root/app/gui/patch_update_hook.py",
+            "$root/app/gui/cumulative_ui_polish_hook.py",
             "$root/app/themes/monokai_light.qss",
             "$root/config/modules.json",
             "$root/config/integrated_patches.json"
@@ -93,8 +95,9 @@ jobs:
           if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
           Copy-Item 'dist/JAR Vietnamese Translator' $portable -Recurse
           @'
-          JAR Vietnamese Translator 4.31 - Cumulative Modular Windows Portable
+          JAR Vietnamese Translator
 
+          Phien ban: 4.31
           Khong can cai Python.
           Chay: JAR Vietnamese Translator.exe
 
