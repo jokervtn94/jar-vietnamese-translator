@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Set
-import re
 import zipfile
+
+from core.class_dependency_inspector import ClassDependencyInspector, ClassDependencyReport
 
 
 NAME_HINTS = (
@@ -38,18 +39,17 @@ class ActivationFlowReport:
     likely_activation_gate: bool = False
     likely_payment_flow: bool = False
     wma_linked: bool = False
+    startup_activation_reachable: bool = False
+    startup_payment_reachable: bool = False
     suspicious_classes: List[str] = field(default_factory=list)
     suspicious_resources: List[str] = field(default_factory=list)
     matched_terms: Dict[str, List[str]] = field(default_factory=dict)
+    dependency: ClassDependencyReport = field(default_factory=ClassDependencyReport)
     findings: List[ActivationFlowFinding] = field(default_factory=list)
 
 
 class ActivationFlowAnalyzer:
-    """Static, read-only detector for legacy activation/payment flow indicators.
-
-    This analyzer does not patch bytecode, bypass checks, forge activation responses,
-    or send SMS. It only surfaces evidence so compatibility work can be scoped safely.
-    """
+    """Static, read-only detector for legacy activation/payment flow indicators."""
 
     def analyze(self, jar_path: str) -> ActivationFlowReport:
         report = ActivationFlowReport()
@@ -103,6 +103,16 @@ class ActivationFlowAnalyzer:
         report.matched_terms = {k: sorted(v) for k, v in sorted(terms.items())}
         report.wma_linked = bool(wma_sources.intersection(class_hits) or wma_sources.intersection(resource_hits))
 
+        try:
+            report.dependency = ClassDependencyInspector().analyze(jar_path, report.suspicious_classes)
+            report.startup_activation_reachable = report.dependency.startup_activation_reachable
+            report.startup_payment_reachable = report.dependency.startup_payment_reachable
+        except Exception as exc:
+            report.findings.append(ActivationFlowFinding(
+                "medium", "JAR", "dependency",
+                f"Class dependency inspection could not complete: {exc}"
+            ))
+
         score = 0
         if report.suspicious_classes:
             score += min(45, 12 + 8 * len(report.suspicious_classes))
@@ -123,6 +133,10 @@ class ActivationFlowAnalyzer:
             score += 15
         if report.likely_payment_flow:
             score += 15
+        if report.startup_activation_reachable:
+            score += 20
+        if report.startup_payment_reachable:
+            score += 10
         report.score = min(100, score)
         report.risk = "high" if report.score >= 60 else ("medium" if report.score >= 30 else "low")
 
@@ -135,6 +149,18 @@ class ActivationFlowAnalyzer:
             report.findings.append(ActivationFlowFinding(
                 "high", ", ".join(sorted(wma_sources)[:5]), "wma_link",
                 "Activation/payment indicators overlap with legacy WMA/SMS usage. This may be more than a missing API and can require runtime-flow analysis."
+            ))
+        if report.startup_activation_reachable:
+            reachable = [p for p in report.dependency.activation_paths if p.startup_reachable]
+            sample = " → ".join(reachable[0].path) if reachable else "MIDlet → activation/payment class"
+            report.findings.append(ActivationFlowFinding(
+                "high", "MANIFEST.MF / class graph", "startup_path",
+                "Activation/payment class is statically reachable from a MIDlet entry class: " + sample
+            ))
+        elif report.suspicious_classes and report.dependency.roots:
+            report.findings.append(ActivationFlowFinding(
+                "medium", "class graph", "startup_path",
+                "Suspicious activation/payment classes exist, but no static reference path from the MIDlet entry class was found. The flow may be optional or dynamically dispatched."
             ))
         if report.likely_activation_gate:
             report.findings.append(ActivationFlowFinding(
