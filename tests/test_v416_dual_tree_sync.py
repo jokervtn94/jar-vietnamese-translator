@@ -28,9 +28,11 @@ MIRRORED_MODULES = (
     "core/runtime_exception_timeline.py",
     "core/runtime_diagnosis_summary.py",
     "core/diagnostic_bundle.py",
+    "core/diagnostic_bundle_inspector.py",
     "gui/runtime_compat_hook.py",
     "gui/diagnostic_compare_hook.py",
     "gui/runtime_log_hook.py",
+    "gui/diagnostic_bundle_inspector_hook.py",
     "gui/task_progress_dialog.py",
 )
 
