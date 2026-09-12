@@ -10,6 +10,7 @@ from core.runtime_diagnosis_summary import (
 )
 from core.diagnostic_bundle import export_diagnostic_bundle, export_diagnostic_bundle_zip
 from gui.diagnostic_bundle_inspector_hook import install_diagnostic_bundle_inspector
+from gui.diagnostics_workspace_hook import install_diagnostics_workspace
 
 
 def _report_value(report, name, default=None):
@@ -78,6 +79,8 @@ def install_runtime_log_analysis(MainWindow):
         self.runtime_bundle_zip_btn.setEnabled(enabled)
 
     def _analyze_runtime_log(self):
+        if hasattr(self, "_diagnostics_show_tab"):
+            self._diagnostics_show_tab("runtime")
         selected, _ = QFileDialog.getOpenFileName(self, "Open runtime log", "", "Log files (*.log *.txt);;All files (*)")
         if not selected:
             return
@@ -178,4 +181,5 @@ def install_runtime_log_analysis(MainWindow):
     MainWindow._export_diagnostic_bundle = _export_diagnostic_bundle
     MainWindow._export_diagnostic_bundle_zip = _export_diagnostic_bundle_zip
     install_diagnostic_bundle_inspector(MainWindow)
+    install_diagnostics_workspace(MainWindow)
     return MainWindow
