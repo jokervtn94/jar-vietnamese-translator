@@ -58,7 +58,7 @@ class RuntimeCompatibilitySummary:
 def summarize_runtime(report) -> RuntimeCompatibilitySummary:
     rg35xx = report.rg35xx
     return RuntimeCompatibilitySummary(
-        target=getattr(rg35xx, "profile_name", "FreeJ2ME / RG35XX") or "FreeJ2ME / RG35XX",
+        target=getattr(rg35xx, "profile_label", "FreeJ2ME / RG35XX") or "FreeJ2ME / RG35XX",
         score=int(getattr(rg35xx, "score", report.compatibility_score)),
         risk=str(getattr(rg35xx, "risk", report.runtime_risk)),
         midp=str(report.midp_profile),
