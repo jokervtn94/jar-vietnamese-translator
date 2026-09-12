@@ -42,9 +42,10 @@ jobs:
             .bootstrap/latestbundle.part013 \
             .bootstrap/latestbundle.part014 \
             .bootstrap/latestbundle.part015 \
-            .bootstrap/latestbundle.part016 \
-            .bootstrap/missing.part021tail \
-            .bootstrap/latestbundle.part017 \
+            .bootstrap/exact.part020 \
+            .bootstrap/exact.part021 \
+            .bootstrap/exact.part022 \
+            .bootstrap/exact.part023 \
             .bootstrap/missing.part024 \
             .bootstrap/latestsegment.005 \
             | tr -d '\r\n' | base64 --decode > /tmp/latest_source_bundle.zip
