@@ -30,6 +30,8 @@ API_HINTS = {
     "com.motorola": "vendor_motorola",
 }
 
+STACK_FRAME_RE = re.compile(r"^\s*at\s+([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+)\.[^.(\s]+\s*\(")
+
 
 @dataclass
 class RuntimeLogFinding:
@@ -43,8 +45,10 @@ class RuntimeLogFinding:
 @dataclass
 class RuntimeLogCorrelation:
     findings: List[RuntimeLogFinding] = field(default_factory=list)
+    stack_frames: List[str] = field(default_factory=list)
     matched_apis: List[str] = field(default_factory=list)
     matched_startup_classes: List[str] = field(default_factory=list)
+    probable_failing_path: List[str] = field(default_factory=list)
     probable_cause: str = "No high-confidence runtime failure detected"
     recommendation: str = "Run another smoke test with a full FreeJ2ME log if the game still fails."
 
@@ -74,6 +78,48 @@ def _api_hint(text: str) -> str:
     return ""
 
 
+def _stack_frames(log_text: str) -> List[str]:
+    frames: List[str] = []
+    seen = set()
+    for raw in log_text.splitlines():
+        match = STACK_FRAME_RE.match(raw)
+        if not match:
+            continue
+        class_name = match.group(1).replace("/", ".")
+        if class_name not in seen:
+            seen.add(class_name)
+            frames.append(class_name)
+    return frames
+
+
+def _failing_path(
+    stack_frames: List[str],
+    startup_path: List[str],
+    matched_apis: List[str],
+) -> List[str]:
+    normalized_startup = [str(item).replace("/", ".") for item in startup_path]
+    path: List[str] = []
+
+    if normalized_startup:
+        frame_set = set(stack_frames)
+        for item in normalized_startup:
+            if item in frame_set and item not in path:
+                path.append(item)
+
+    for frame in reversed(stack_frames):
+        if frame.startswith(("java.", "javax.", "sun.", "com.sun.")):
+            continue
+        if frame not in path:
+            path.append(frame)
+
+    if matched_apis:
+        api_label = matched_apis[0]
+        if api_label not in path:
+            path.append(api_label)
+
+    return path
+
+
 def correlate_runtime_log(log_text: str, compatibility_report: Any | None = None) -> RuntimeLogCorrelation:
     findings: List[RuntimeLogFinding] = []
     seen = set()
@@ -96,18 +142,30 @@ def correlate_runtime_log(log_text: str, compatibility_report: Any | None = None
                 seen.add(key)
                 findings.append(RuntimeLogFinding(error_type, symbol, line, api, severity))
 
+    frames = _stack_frames(log_text)
     report_apis = set(_value(compatibility_report, "detected_apis", []) or []) if compatibility_report else set()
-    matched_apis = sorted({f.api_hint for f in findings if f.api_hint and (not report_apis or f.api_hint in report_apis)})
-
-    startup_path = _value(compatibility_report, "startup_path", []) or [] if compatibility_report else []
-    startup_classes = {str(item).replace("/", ".") for item in startup_path}
-    matched_startup = sorted({
-        cls for cls in startup_classes
-        if any(cls and cls in (f.line.replace("/", ".") + " " + f.symbol) for f in findings)
+    matched_apis = sorted({
+        f.api_hint
+        for f in findings
+        if f.api_hint and (not report_apis or f.api_hint in report_apis)
     })
 
+    startup_path = list(_value(compatibility_report, "startup_path", []) or []) if compatibility_report else []
+    frame_set = set(frames)
+    matched_startup = [
+        str(item).replace("/", ".")
+        for item in startup_path
+        if str(item).replace("/", ".") in frame_set
+    ]
+
+    failing_path = _failing_path(frames, startup_path, matched_apis)
+
     if any(f.error_type in {"ClassNotFoundException", "NoClassDefFoundError"} for f in findings):
-        missing = next((f.symbol for f in findings if f.error_type in {"ClassNotFoundException", "NoClassDefFoundError"} and f.symbol), "required class")
+        missing = next((
+            f.symbol
+            for f in findings
+            if f.error_type in {"ClassNotFoundException", "NoClassDefFoundError"} and f.symbol
+        ), "required class")
         cause = f"Runtime cannot resolve required class: {missing}"
         recommendation = "Check whether the target runtime provides the referenced API/class and compare it with the compatibility report before rebuilding the JAR."
     elif any(f.error_type == "VerifyError" for f in findings):
@@ -133,8 +191,10 @@ def correlate_runtime_log(log_text: str, compatibility_report: Any | None = None
 
     return RuntimeLogCorrelation(
         findings=findings,
+        stack_frames=frames,
         matched_apis=matched_apis,
         matched_startup_classes=matched_startup,
+        probable_failing_path=failing_path,
         probable_cause=cause,
         recommendation=recommendation,
     )
@@ -146,6 +206,7 @@ def format_runtime_log_correlation(result: RuntimeLogCorrelation) -> str:
         f"Probable cause: {result.probable_cause}",
         f"Matched APIs: {', '.join(result.matched_apis) or 'none'}",
         f"Startup classes: {' -> '.join(result.matched_startup_classes) or 'none'}",
+        f"Probable failing path: {' -> '.join(result.probable_failing_path) or 'not available'}",
         f"Recommendation: {result.recommendation}",
         "",
         "Findings:",
