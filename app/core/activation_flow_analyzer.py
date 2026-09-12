@@ -152,7 +152,8 @@ class ActivationFlowAnalyzer:
             ))
         if report.startup_activation_reachable:
             reachable = [p for p in report.dependency.activation_paths if p.startup_reachable]
-            sample = " → ".join(reachable[0].path) if reachable else "MIDlet → activation/payment class"
+            best = max(reachable, key=lambda p: (len(p.path), p.target)) if reachable else None
+            sample = " → ".join(best.path) if best else "MIDlet → activation/payment class"
             report.findings.append(ActivationFlowFinding(
                 "high", "MANIFEST.MF / class graph", "startup_path",
                 "Activation/payment class is statically reachable from a MIDlet entry class: " + sample
