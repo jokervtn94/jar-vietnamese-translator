@@ -2,6 +2,15 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QFileDialog, QFrame, QGridLayout, QLabel, QPushButton
 from core.runtime_log_correlator import correlate_runtime_log, format_runtime_log_correlation, load_log
+from core.runtime_exception_timeline import build_exception_timeline, format_exception_timeline
+
+
+def _report_value(report, name, default=None):
+    if report is None:
+        return default
+    if isinstance(report, dict):
+        return report.get(name, default)
+    return getattr(report, name, default)
 
 
 def install_runtime_log_analysis(MainWindow):
@@ -36,9 +45,20 @@ def install_runtime_log_analysis(MainWindow):
             return
         try:
             report = getattr(self, "_runtime_compat_export", None)
-            result = correlate_runtime_log(load_log(selected), report)
-            self.runtime_log_value.setText(format_runtime_log_correlation(result))
-            self.statusBar().showMessage(result.probable_cause, 9000)
+            log_text = load_log(selected)
+            result = correlate_runtime_log(log_text, report)
+            timeline = build_exception_timeline(
+                log_text,
+                startup_path=_report_value(report, "startup_path", []) or [],
+                matched_apis=result.matched_apis,
+            )
+            text = format_runtime_log_correlation(result) + "\n\n" + format_exception_timeline(timeline)
+            self.runtime_log_value.setText(text)
+            primary = timeline.primary
+            if primary is not None:
+                self.statusBar().showMessage(f"Priority failure: {primary.error_type}", 9000)
+            else:
+                self.statusBar().showMessage(result.probable_cause, 9000)
         except Exception as exc:
             self.runtime_log_value.setText(f"Không thể phân tích log: {exc}")
 
