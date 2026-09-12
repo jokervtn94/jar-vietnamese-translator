@@ -8,7 +8,7 @@ from pathlib import Path
 APP_NAME = "JAR Vietnamese Translator"
 
 # Portable launcher intentionally keeps application code external in app/ so the
-# full-width diagnostics UI and other modules can be upgraded independently.
+# integrated diagnostics UI and related modules can be updated independently.
 
 
 def portable_root() -> Path:
