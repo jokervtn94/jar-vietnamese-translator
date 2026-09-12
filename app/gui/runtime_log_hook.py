@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# Portable hook intentionally mirrors the development hook semantically.
 from PySide6.QtWidgets import QFileDialog, QFrame, QGridLayout, QLabel, QPushButton
 from core.runtime_log_correlator import correlate_runtime_log, format_runtime_log_correlation, load_log
 from core.runtime_exception_timeline import build_exception_timeline, format_exception_timeline
