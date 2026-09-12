@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import shutil
-from typing import Any
+import tempfile
+from typing import Any, List
 import zipfile
 
 from core.compatibility_report import CompatibilityReportExporter
@@ -22,8 +23,8 @@ class DiagnosticBundleResult:
 
 @dataclass
 class DiagnosticBundleZipResult:
-    bundle: DiagnosticBundleResult
     zip_path: Path
+    members: List[str] = field(default_factory=list)
 
 
 def _safe_name(value: str) -> str:
@@ -113,12 +114,22 @@ def export_diagnostic_bundle_zip(
     compatibility_export: Any | None = None,
     bundle_name: str | None = None,
 ) -> DiagnosticBundleZipResult:
-    bundle = export_diagnostic_bundle(
-        output_parent,
-        log_path,
-        runtime_summary,
-        compatibility_export,
-        bundle_name,
-    )
-    zip_path = zip_diagnostic_bundle(bundle)
-    return DiagnosticBundleZipResult(bundle=bundle, zip_path=zip_path)
+    output_dir = Path(output_parent)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    source_log = Path(log_path)
+    base_name = _safe_name(bundle_name or f"{source_log.stem}_diagnostic")
+    target_zip = output_dir / f"{base_name}.zip"
+
+    with tempfile.TemporaryDirectory(prefix="jar_diag_") as temp_dir:
+        bundle = export_diagnostic_bundle(
+            temp_dir,
+            source_log,
+            runtime_summary,
+            compatibility_export,
+            base_name,
+        )
+        zip_diagnostic_bundle(bundle, target_zip)
+        with zipfile.ZipFile(target_zip, "r") as archive:
+            members = archive.namelist()
+
+    return DiagnosticBundleZipResult(zip_path=target_zip, members=members)
