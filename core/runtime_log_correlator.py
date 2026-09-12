@@ -151,7 +151,6 @@ def correlate_runtime_log(log_text: str, compatibility_report: Any | None = None
     })
 
     startup_path = list(_value(compatibility_report, "startup_path", []) or []) if compatibility_report else []
-    startup_classes = {str(item).replace("/", ".") for item in startup_path}
     frame_set = set(frames)
     matched_startup = [
         str(item).replace("/", ".")
