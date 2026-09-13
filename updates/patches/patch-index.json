@@ -2,9 +2,9 @@
   "schema": "jvt-patch-index-v2",
   "updated": "2026-09-13",
   "stable_archive": {
-    "file": "JVT_PATCH_STABLE_ARCHIVE_20260913.zip",
-    "sha256": "ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17",
-    "stable_count": 21,
+    "file": "JVT_PATCH_STABLE_ARCHIVE_20260913_R2.zip",
+    "sha256": "90bd69ffe16700143ae5c132c281e6506eddec2f95a875cdd1b5d75e8befb192",
+    "stable_count": 22,
     "archive_count": 2
   },
   "install_order": [
@@ -28,7 +28,8 @@
     {"order":18,"patch_id":"CORE-020-font-loader-and-cjk-complete-scan","file":"JVT_PATCH_CORE_020_FONT_LOADER_AND_CJK_COMPLETE_SCAN.zip","sha256":"67823905b25ff120ce148afb5c1fb96e33f62713905190b04f7f6ee1d6952d59","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
     {"order":19,"patch_id":"CORE-021-residual-cjk-and-technical-token-filter","file":"JVT_PATCH_CORE_021_RESIDUAL_CJK_AND_TECHNICAL_TOKEN_FILTER.zip","sha256":"b5c88e04fddf05edb28e2571b4962bc791b10faac8252849c5fdd3faab85e4a2","requires":["CORE-020-font-loader-and-cjk-complete-scan"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
     {"order":20,"patch_id":"CORE-022-font-aware-single-build-flow","file":"JVT_PATCH_CORE_022_FONT_AWARE_SINGLE_BUILD_FLOW.zip","sha256":"51c16af646998b0bbc28f0cd7f47fe6cbfd75293563c96a71705e008131ceaf7","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build","CORE-020-font-loader-and-cjk-complete-scan","CORE-021-residual-cjk-and-technical-token-filter"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
-    {"order":21,"patch_id":"UI-023-translation-table-readonly","file":"JVT_PATCH_UI_023_TRANSLATION_TABLE_READONLY.zip","sha256":"ed295af310fe2bd75ae8f007ea9284174772a86f52ceda1c952a42a51992aeac","requires":["CORE-022-font-aware-single-build-flow"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]}
+    {"order":21,"patch_id":"UI-023-translation-table-readonly","file":"JVT_PATCH_UI_023_TRANSLATION_TABLE_READONLY.zip","sha256":"ed295af310fe2bd75ae8f007ea9284174772a86f52ceda1c952a42a51992aeac","requires":["CORE-022-font-aware-single-build-flow"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":22,"patch_id":"UI-024-remove-redundant-edit-button","file":"JVT_PATCH_UI_024_REMOVE_REDUNDANT_EDIT_BUTTON.zip","sha256":"d0949287b711ec3273da3cc300ddf7d161fa3329a08ab21fcd701c7bfef3fa23","requires":["UI-023-translation-table-readonly"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]}
   ],
   "archived": [
     {"patch_id":"CORE-009-safe-single-word-scan","file":"JVT_PATCH_CORE_009_SAFE_SINGLE_WORD_SCAN.zip","sha256":"e9a426df0d50fe3db8173e6dfceb2847cb8fcb6008eec628176940dfaf05538c","status":"archived","reason":"superseded by CORE-010; CORE-009 had missing pathlib.Path runtime issue"},
