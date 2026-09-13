@@ -1,21 +1,51 @@
-# JVT Patch Archive
+# JAR Vietnamese Translator — Patch Archive
 
-Kho lưu patch độc lập cho **JAR Vietnamese Translator** để có thể tra cứu, tải lại và kiểm tra lịch sử thay đổi khi cần.
+Thư mục này là kho patch chuẩn để lưu lại các bản cập nhật modular đã tạo cho **JAR Vietnamese Translator**.
 
-## Quy ước
+## Quy định bắt buộc
 
-- Mỗi patch có `patch_id`, SHA-256, dependency (`requires`) và mô tả thay đổi.
-- Cài patch theo thứ tự dependency; không bỏ qua patch được khai báo trong `requires`.
-- Ưu tiên cài bằng **Update Patch** trong app để dùng cơ chế backup/rollback.
-- Patch có `restart_required: true` cần khởi động lại app sau khi áp dụng.
-- Khi thuật toán scanner thay đổi, cần scan lại JAR và export JSON mới; JSON cũ có thể không còn khớp candidate set.
+- Mỗi patch mới phải có `manifest.json`, `patch_id`, SHA-256, dependency và mô tả thay đổi.
+- Mỗi lần phát hành patch phải cập nhật `CHANGELOG.md` và `patch-index.json`.
+- `stable/` là chuỗi patch hiện hành; `archive/` chỉ giữ patch cũ/superseded để rollback hoặc đối chiếu lịch sử.
+- Không cài patch trong `archive/` lên trên chuỗi stable hiện tại.
+- Trước khi đưa vào stable, ZIP phải vượt qua: ZIP integrity, hash từng payload theo manifest, Python syntax compile và JSON parse (nếu có).
+- Kiểm tra cấu trúc/syntax không thay thế kiểm thử runtime Windows/KEmulator; trạng thái runtime được ghi riêng trong changelog.
 
-## Log và chỉ mục
+## Chuỗi stable hiện tại
 
-- `CHANGELOG.md`: mô tả chi tiết từng patch.
-- `patch-index.json`: chỉ mục máy đọc được, gồm SHA-256, dependency và file bị thay đổi.
-- `INSTALLATION.md`: hướng dẫn cài/rollback.
+1. UI-001 — layout 20/50/30
+2. UI-002 — icon/workflow header
+3. UI-003 — icon/toggle polish
+4. UI-004 — grouped header ribbon
+5. UI-005 — header ribbon hotfix
+6. UI-006 — compact vector header
+7. CORE-007 — JAR open hotfix
+8. CORE-008 — auto restart after patch
+9. CORE-010 — safe single-word scan + Path import fix
+10. UI-012 — Diagnostics dashboard 2×2
+11. CORE-013 — WMA/SMS compatibility assistant
+12. CORE-014 — scan freeze performance fix
+13. CORE-015 — activation classification fix
+14. CORE-016 — open JAR freeze hotfix
+15. CORE-017 — startup activation deep trace
+16. CORE-018 — Vietnamese bitmap font builder
+17. CORE-019 — unified translation + font pipeline
+18. CORE-020 — font-loader byte-length + CJK complete scan
+19. CORE-021 — residual CJK + technical-token filter
+20. CORE-022 — font-aware single Build JAR flow
+21. UI-023 — translation table read-only
 
-## Quy ước từ CORE-022 trở đi
+## Patch bị superseded
 
-Mọi patch mới phải được lưu vào thư mục này cùng lúc với log mô tả. Patch font không được tạo thêm luồng build riêng; **Build JAR** là entry point build duy nhất.
+- CORE-009: superseded bởi CORE-010 vì CORE-009 thiếu `pathlib.Path` ở runtime.
+- UI-011: superseded bởi UI-012; bootstrap cũ của UI-011 có thể làm mất các hook về sau.
+
+## Stable archive bundle
+
+Bản archive đầy đủ được tạo ngày **2026-09-13**:
+
+- `JVT_PATCH_STABLE_ARCHIVE_20260913.zip`
+- SHA-256: `ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17`
+- Chứa: 21 patch stable + 2 patch archived/superseded + README + CHANGELOG + patch-index.
+
+Do GitHub connector hiện tại không nhận file binary trực tiếp qua Contents API, archive binary được lưu theo gói khôi phục trong thư mục `updates/patches/package/` khi có các part tương ứng. Luôn kiểm tra SHA-256 sau khi khôi phục.
