@@ -34,6 +34,7 @@ Thư mục này là kho patch chuẩn để lưu lại các bản cập nhật m
 19. CORE-021 — residual CJK + technical-token filter
 20. CORE-022 — font-aware single Build JAR flow
 21. UI-023 — translation table read-only
+22. UI-024 — remove redundant Edit button from main ribbon
 
 ## Patch bị superseded
 
@@ -42,10 +43,10 @@ Thư mục này là kho patch chuẩn để lưu lại các bản cập nhật m
 
 ## Stable archive bundle
 
-Bản archive đầy đủ được tạo ngày **2026-09-13**:
+Bản archive đầy đủ hiện tại:
 
-- `JVT_PATCH_STABLE_ARCHIVE_20260913.zip`
-- SHA-256: `ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17`
-- Chứa: 21 patch stable + 2 patch archived/superseded + README + CHANGELOG + patch-index.
+- `JVT_PATCH_STABLE_ARCHIVE_20260913_R2.zip`
+- SHA-256: `90bd69ffe16700143ae5c132c281e6506eddec2f95a875cdd1b5d75e8befb192`
+- Chứa: 22 patch stable + 2 patch archived/superseded + README + CHANGELOG + patch-index.
 
-Do GitHub connector hiện tại không nhận file binary trực tiếp qua Contents API, archive binary được lưu theo gói khôi phục trong thư mục `updates/patches/package/` khi có các part tương ứng. Luôn kiểm tra SHA-256 sau khi khôi phục.
+Do GitHub connector hiện tại không nhận file binary trực tiếp qua Contents API, archive binary được giữ ngoài repository khi chưa có cơ chế upload artifact phù hợp. Luôn đối chiếu SHA-256 với `patch-index.json`.
