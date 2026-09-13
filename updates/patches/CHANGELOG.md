@@ -16,7 +16,18 @@ Lưu ý: kiểm tra trên xác nhận tính toàn vẹn package và syntax. Nó 
 
 ## Stable install chain
 
-`UI-001 → UI-002 → UI-003 → UI-004 → UI-005 → UI-006 → CORE-007 → CORE-008 → CORE-010 → UI-012 → CORE-013 → CORE-014 → CORE-015 → CORE-016 → CORE-017 → CORE-018 → CORE-019 → CORE-020 → CORE-021 → CORE-022 → UI-023`
+`UI-001 → UI-002 → UI-003 → UI-004 → UI-005 → UI-006 → CORE-007 → CORE-008 → CORE-010 → UI-012 → CORE-013 → CORE-014 → CORE-015 → CORE-016 → CORE-017 → CORE-018 → CORE-019 → CORE-020 → CORE-021 → CORE-022 → UI-023 → UI-024`
+
+## UI-024 — Remove Redundant Edit Button
+
+- Loại bỏ nút **Biên tập** khỏi nhóm Dịch thuật trên ribbon chính.
+- Nút cũ không mở một trình biên tập riêng; nó chỉ gọi `self.strings.setFocus()` để chuyển focus vào bảng chuỗi ở giữa.
+- Sau UI-023, bảng giữa là read-only nên hành động này không còn giá trị sử dụng.
+- Việc chỉnh sửa bản dịch được giữ duy nhất tại panel **Chỉnh sửa chuỗi** bên phải.
+- Nhóm Dịch thuật trên ribbon giờ chỉ còn **Nhập bản dịch** và **Xuất bản dịch**.
+- Không thay đổi dữ liệu dịch, Import/Export JSON, autosave, font analysis hoặc Build JAR.
+
+SHA-256 package: `d0949287b711ec3273da3cc300ddf7d161fa3329a08ab21fcd701c7bfef3fa23`
 
 ## UI-023 — Translation Table Read-only
 
@@ -156,9 +167,9 @@ Chuỗi UI nền tảng hiện hành: layout 20/50/30, icon/file categories, gro
 
 ## Stable archive bundle
 
-`JVT_PATCH_STABLE_ARCHIVE_20260913.zip`
+`JVT_PATCH_STABLE_ARCHIVE_20260913_R2.zip`
 
-- SHA-256: `ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17`
-- 21 patch stable.
+- SHA-256: `90bd69ffe16700143ae5c132c281e6506eddec2f95a875cdd1b5d75e8befb192`
+- 22 patch stable.
 - 2 patch archived/superseded.
 - Có README, CHANGELOG và patch-index nội bộ.
