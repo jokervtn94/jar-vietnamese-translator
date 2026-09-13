@@ -1,0 +1,12 @@
+{
+  "schema": "jvt-patch-archive-v1",
+  "updated": "2026-09-13",
+  "future_patch_rule": "Every new patch must update this index and CHANGELOG.md.",
+  "patches": [
+    {"patch_id":"CORE-018-vietnamese-bitmap-font-builder","file":"JVT_PATCH_CORE_018_VIETNAMESE_BITMAP_FONT_BUILDER.zip","sha256":"5313ffaf5fc2a2ee7d07ac5630e27a9e90b23ed025ace0ac03c1b34128913d87","requires":[]},
+    {"patch_id":"CORE-019-unified-translation-font-build","file":"JVT_PATCH_CORE_019_UNIFIED_TRANSLATION_FONT_BUILD.zip","sha256":"cdade4e8f63da4f520b3ce253042e92dea61e922a0b4b51dc1d571fe205e6b0a","requires":["CORE-018-vietnamese-bitmap-font-builder"]},
+    {"patch_id":"CORE-020-font-loader-and-cjk-complete-scan","file":"JVT_PATCH_CORE_020_FONT_LOADER_AND_CJK_COMPLETE_SCAN.zip","sha256":"67823905b25ff120ce148afb5c1fb96e33f62713905190b04f7f6ee1d6952d59","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build"]},
+    {"patch_id":"CORE-021-residual-cjk-and-technical-token-filter","file":"JVT_PATCH_CORE_021_RESIDUAL_CJK_AND_TECHNICAL_TOKEN_FILTER.zip","sha256":"b5c88e04fddf05edb28e2571b4962bc791b10faac8252849c5fdd3faab85e4a2","requires":["CORE-020-font-loader-and-cjk-complete-scan"]},
+    {"patch_id":"CORE-022-font-aware-single-build-flow","file":"JVT_PATCH_CORE_022_FONT_AWARE_SINGLE_BUILD_FLOW.zip","sha256":"51c16af646998b0bbc28f0cd7f47fe6cbfd75293563c96a71705e008131ceaf7","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build","CORE-020-font-loader-and-cjk-complete-scan","CORE-021-residual-cjk-and-technical-token-filter"]}
+  ]
+}
