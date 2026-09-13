@@ -1,13 +1,37 @@
 {
-  "schema": "jvt-patch-archive-v1",
+  "schema": "jvt-patch-index-v2",
   "updated": "2026-09-13",
-  "future_patch_rule": "Every new patch must update this index and CHANGELOG.md.",
-  "patches": [
-    {"patch_id":"CORE-018-vietnamese-bitmap-font-builder","file":"JVT_PATCH_CORE_018_VIETNAMESE_BITMAP_FONT_BUILDER.zip","sha256":"5313ffaf5fc2a2ee7d07ac5630e27a9e90b23ed025ace0ac03c1b34128913d87","requires":[]},
-    {"patch_id":"CORE-019-unified-translation-font-build","file":"JVT_PATCH_CORE_019_UNIFIED_TRANSLATION_FONT_BUILD.zip","sha256":"cdade4e8f63da4f520b3ce253042e92dea61e922a0b4b51dc1d571fe205e6b0a","requires":["CORE-018-vietnamese-bitmap-font-builder"]},
-    {"patch_id":"CORE-020-font-loader-and-cjk-complete-scan","file":"JVT_PATCH_CORE_020_FONT_LOADER_AND_CJK_COMPLETE_SCAN.zip","sha256":"67823905b25ff120ce148afb5c1fb96e33f62713905190b04f7f6ee1d6952d59","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build"]},
-    {"patch_id":"CORE-021-residual-cjk-and-technical-token-filter","file":"JVT_PATCH_CORE_021_RESIDUAL_CJK_AND_TECHNICAL_TOKEN_FILTER.zip","sha256":"b5c88e04fddf05edb28e2571b4962bc791b10faac8252849c5fdd3faab85e4a2","requires":["CORE-020-font-loader-and-cjk-complete-scan"]},
-    {"patch_id":"CORE-022-font-aware-single-build-flow","file":"JVT_PATCH_CORE_022_FONT_AWARE_SINGLE_BUILD_FLOW.zip","sha256":"51c16af646998b0bbc28f0cd7f47fe6cbfd75293563c96a71705e008131ceaf7","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build","CORE-020-font-loader-and-cjk-complete-scan","CORE-021-residual-cjk-and-technical-token-filter"]},
-    {"patch_id":"UI-023-translation-table-readonly","file":"JVT_PATCH_UI_023_TRANSLATION_TABLE_READONLY.zip","sha256":"ed295af310fe2bd75ae8f007ea9284174772a86f52ceda1c952a42a51992aeac","requires":["CORE-022-font-aware-single-build-flow"]}
+  "stable_archive": {
+    "file": "JVT_PATCH_STABLE_ARCHIVE_20260913.zip",
+    "sha256": "ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17",
+    "stable_count": 21,
+    "archive_count": 2
+  },
+  "install_order": [
+    {"order":1,"patch_id":"UI-001-layout-20-50-30","file":"JVT_PATCH_UI_001_LAYOUT_20_50_30(1).zip","sha256":"fc826524a366bb2d6889efa7a8227f12223b9dfe9d4d9eacce00ba9a135005bb","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":2,"patch_id":"UI-002-icon-workflow-header","file":"JVT_PATCH_UI_002_ICON_WORKFLOW_HEADER(1).zip","sha256":"1fd48a57a4d8bcb312fc13aacb31a1a94ea2dfad4412b5eedfa17333357267c6","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":3,"patch_id":"UI-003-icon-toggle-polish","file":"JVT_PATCH_UI_003_ICON_TOGGLE_POLISH(1).zip","sha256":"abaf7eb58d67252655c8ee7ade5faf8f3595672a37089c819402ef30d506b6e0","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":4,"patch_id":"UI-004-grouped-header-ribbon","file":"JVT_PATCH_UI_004_GROUPED_HEADER_RIBBON.zip","sha256":"c153878c7d52d1635afa63fe2816df5f0270ddb64838e772ca29e034c0b7fe04","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":5,"patch_id":"UI-005-header-ribbon-hotfix","file":"JVT_PATCH_UI_005_HEADER_RIBBON_HOTFIX.zip","sha256":"02664c45de5271f8abc830abc07e1ccd22354966c6aa0b0574cd95ff9b91ffe7","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":6,"patch_id":"UI-006-compact-vector-header","file":"JVT_PATCH_UI_006_COMPACT_VECTOR_HEADER.zip","sha256":"7ce054fc153c515edaabe302a6ec4ed37330a901f0d37012f2126e153072a173","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":7,"patch_id":"CORE-007-jar-open-hotfix","file":"JVT_PATCH_CORE_007_JAR_OPEN_HOTFIX.zip","sha256":"43ff78c046bdafbee0ee53e62c9d532a7ea7f5dcb4b5f4bbbbbe0895bc59f6a9","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":8,"patch_id":"CORE-008-auto-restart-after-patch","file":"JVT_PATCH_CORE_008_AUTO_RESTART_AFTER_PATCH.zip","sha256":"680950f15d7a834d83fa703aa581f3517e113b9202bef750abf040c460465837","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":9,"patch_id":"CORE-010-path-import-fix","file":"JVT_PATCH_CORE_010_PATH_IMPORT_FIX.zip","sha256":"6a56ae95d19d0ebb24043ebb8ba74eaa2d0c1f33895ef72bac8e579e7708fb75","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":10,"patch_id":"UI-012-diagnostics-dashboard-2x2","file":"JVT_PATCH_UI_012_DIAGNOSTICS_DASHBOARD_2X2.zip","sha256":"161d674857406995a1e07ba791ddd5a6fc5a00c4a21aca86001a043e63d8a70d","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":11,"patch_id":"CORE-013-wma-sms-compatibility-assistant","file":"JVT_PATCH_CORE_013_WMA_SMS_COMPATIBILITY_ASSISTANT.zip","sha256":"0c9a07640e8be2c9427eb428adba941fa64bca81c1358902515b791df1ebf857","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":12,"patch_id":"CORE-014-scan-freeze-performance-fix","file":"JVT_PATCH_CORE_014_SCAN_FREEZE_PERFORMANCE_FIX.zip","sha256":"81f665cd856f6084cc6990a4ec2fa6242629743f668762a8f2ab6b091a789a2c","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":13,"patch_id":"CORE-015-activation-classification-fix","file":"JVT_PATCH_CORE_015_ACTIVATION_CLASSIFICATION_FIX.zip","sha256":"efc74a5be4afbf9a9fe536f5ec56b137d187968cb8cc6e69b5c84d8a6f2de356","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":14,"patch_id":"CORE-016-open-jar-freeze-hotfix","file":"JVT_PATCH_CORE_016_OPEN_JAR_FREEZE_HOTFIX.zip","sha256":"1f2c9a4c0bab16e7ccae82fba554ffea6efd5c1dadc06c395501ad70ecd310ee","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":15,"patch_id":"CORE-017-startup-activation-deep-trace","file":"JVT_PATCH_CORE_017_STARTUP_ACTIVATION_DEEP_TRACE.zip","sha256":"7f57d0f903a7a5eac6db14d2d7996b83dbb936d5577c333d66c5d40f81ba7a93","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":16,"patch_id":"CORE-018-vietnamese-bitmap-font-builder","file":"JVT_PATCH_CORE_018_VIETNAMESE_BITMAP_FONT_BUILDER.zip","sha256":"5313ffaf5fc2a2ee7d07ac5630e27a9e90b23ed025ace0ac03c1b34128913d87","requires":[],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":17,"patch_id":"CORE-019-unified-translation-font-build","file":"JVT_PATCH_CORE_019_UNIFIED_TRANSLATION_FONT_BUILD.zip","sha256":"cdade4e8f63da4f520b3ce253042e92dea61e922a0b4b51dc1d571fe205e6b0a","requires":["CORE-018-vietnamese-bitmap-font-builder"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":18,"patch_id":"CORE-020-font-loader-and-cjk-complete-scan","file":"JVT_PATCH_CORE_020_FONT_LOADER_AND_CJK_COMPLETE_SCAN.zip","sha256":"67823905b25ff120ce148afb5c1fb96e33f62713905190b04f7f6ee1d6952d59","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":19,"patch_id":"CORE-021-residual-cjk-and-technical-token-filter","file":"JVT_PATCH_CORE_021_RESIDUAL_CJK_AND_TECHNICAL_TOKEN_FILTER.zip","sha256":"b5c88e04fddf05edb28e2571b4962bc791b10faac8252849c5fdd3faab85e4a2","requires":["CORE-020-font-loader-and-cjk-complete-scan"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":20,"patch_id":"CORE-022-font-aware-single-build-flow","file":"JVT_PATCH_CORE_022_FONT_AWARE_SINGLE_BUILD_FLOW.zip","sha256":"51c16af646998b0bbc28f0cd7f47fe6cbfd75293563c96a71705e008131ceaf7","requires":["CORE-018-vietnamese-bitmap-font-builder","CORE-019-unified-translation-font-build","CORE-020-font-loader-and-cjk-complete-scan","CORE-021-residual-cjk-and-technical-token-filter"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]},
+    {"order":21,"patch_id":"UI-023-translation-table-readonly","file":"JVT_PATCH_UI_023_TRANSLATION_TABLE_READONLY.zip","sha256":"ed295af310fe2bd75ae8f007ea9284174772a86f52ceda1c952a42a51992aeac","requires":["CORE-022-font-aware-single-build-flow"],"status":"stable","validation":["zip","manifest-hash","python-syntax"]}
+  ],
+  "archived": [
+    {"patch_id":"CORE-009-safe-single-word-scan","file":"JVT_PATCH_CORE_009_SAFE_SINGLE_WORD_SCAN.zip","sha256":"e9a426df0d50fe3db8173e6dfceb2847cb8fcb6008eec628176940dfaf05538c","status":"archived","reason":"superseded by CORE-010; CORE-009 had missing pathlib.Path runtime issue"},
+    {"patch_id":"UI-011-diagnostics-display-fix","file":"JVT_PATCH_UI_011_DIAGNOSTICS_DISPLAY_FIX.zip","sha256":"2c5f561644946b58267f62d33435267fb2d92d1ab0eeb2a007f8a1596ffd5003","status":"archived","reason":"superseded by UI-012; stale bootstrap can regress newer hooks"}
   ]
 }
