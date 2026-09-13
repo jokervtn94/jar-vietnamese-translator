@@ -1,5 +1,16 @@
 # Patch Changelog
 
+## UI-023-translation-table-readonly
+- Fix lỗi UI/UX khi double click vào ô bản dịch trong bảng giữa làm xuất hiện editor nội tuyến bị cắt/chồng như ảnh người dùng báo.
+- Bảng `Chuỗi ngôn ngữ` chuyển thành chế độ chỉ xem/chọn dòng (`NoEditTriggers`).
+- Single click vẫn chọn dòng và đồng bộ nội dung sang panel `Chỉnh sửa chuỗi` bên phải.
+- Double click không còn mở editor trực tiếp trong cell; chỉ chuyển focus sang ô `Bản dịch (Vietnamese)` ở panel bên phải.
+- Giữ nguyên cơ chế `itemChanged` cho các cập nhật chương trình/import JSON; chỉ chặn thao tác sửa trực tiếp của người dùng trong bảng.
+- File ảnh hưởng: `app/gui/vietnamese_font_hook.py` (kế thừa nguyên CORE-022 và thêm UX guard để tránh stale-bootstrap regression).
+- Dependency: `CORE-022-font-aware-single-build-flow`.
+- Regression/rủi ro: không thay đổi dữ liệu dịch, key, autosave, import/export hoặc build pipeline; chỉ thay đổi edit trigger/focus của bảng.
+- SHA-256: `ed295af310fe2bd75ae8f007ea9284174772a86f52ceda1c952a42a51992aeac`
+
 ## CORE-022-font-aware-single-build-flow
 - Tách phân tích font khỏi build.
 - Bỏ nút Build font/Build JAR + Font riêng.
@@ -45,6 +56,7 @@
 ## UI patch chain
 - UI-001 -> UI-006: layout 20/50/30, vector icon, grouped ribbon, compact header và hotfix.
 - UI-011 -> UI-012: Diagnostics display fix và dashboard 2x2.
+- UI-023: khóa chỉnh sửa trực tiếp trong bảng chuỗi; chỉnh sửa chỉ thực hiện ở panel bên phải.
 
 ## Quy ước bắt buộc từ CORE-022
 Mọi patch mới phải cập nhật `updates/patches/` cùng lúc và ghi rõ patch ID, dependency, file ảnh hưởng, thay đổi hành vi, regression/rủi ro và SHA-256 của ZIP.
