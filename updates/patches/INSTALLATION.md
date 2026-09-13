@@ -4,7 +4,7 @@
 
 Cài đúng thứ tự trong `patch-index.json`. Chuỗi hiện tại:
 
-`UI-001 → UI-002 → UI-003 → UI-004 → UI-005 → UI-006 → CORE-007 → CORE-008 → CORE-010 → UI-012 → CORE-013 → CORE-014 → CORE-015 → CORE-016 → CORE-017 → CORE-018 → CORE-019 → CORE-020 → CORE-021 → CORE-022 → UI-023`
+`UI-001 → UI-002 → UI-003 → UI-004 → UI-005 → UI-006 → CORE-007 → CORE-008 → CORE-010 → UI-012 → CORE-013 → CORE-014 → CORE-015 → CORE-016 → CORE-017 → CORE-018 → CORE-019 → CORE-020 → CORE-021 → CORE-022 → UI-023 → UI-024`
 
 Không cài `CORE-009` hoặc `UI-011` trên chuỗi hiện tại; hai patch này đã bị superseded.
 
@@ -24,6 +24,7 @@ Không cài `CORE-009` hoặc `UI-011` trên chuỗi hiện tại; hai patch nà
 - Technical token như path/filename/code token không xuất vào JSON dịch.
 - Import JSON dịch hoạt động.
 - Bảng chuỗi ở giữa không cho sửa inline; chỉ sửa ở panel bên phải.
+- Ribbon Dịch thuật không còn nút **Biên tập** dư thừa; chỉ còn Nhập/Xuất bản dịch.
 - Diagnostics mở được dashboard 2×2.
 - Phân tích font phân biệt được đủ glyph / thiếu glyph.
 - Nếu font đủ: Build JAR chính build trực tiếp.
@@ -36,8 +37,8 @@ PatchUpdater tạo backup transactional trước khi thay file. Nếu apply th�
 
 ## Stable archive
 
-`JVT_PATCH_STABLE_ARCHIVE_20260913.zip`
+`JVT_PATCH_STABLE_ARCHIVE_20260913_R2.zip`
 
-SHA-256: `ea6b26a768fbc2c1febd4b4b7ec63a33b45534d61b454007ef381bb723753c17`
+SHA-256: `90bd69ffe16700143ae5c132c281e6506eddec2f95a875cdd1b5d75e8befb192`
 
-Archive gồm toàn bộ 21 patch stable và 2 patch superseded để đối chiếu lịch sử. Không lấy patch trong thư mục `archive/` để cài lên current chain.
+Archive gồm toàn bộ 22 patch stable và 2 patch superseded để đối chiếu lịch sử. Không lấy patch trong thư mục `archive/` để cài lên current chain.
