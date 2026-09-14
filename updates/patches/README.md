@@ -1,52 +1,47 @@
 # JAR Vietnamese Translator — Patch Archive
 
-Thư mục này là kho patch chuẩn để lưu lại các bản cập nhật modular đã tạo cho **JAR Vietnamese Translator**.
+Thư mục này là kho patch chuẩn của **JAR Vietnamese Translator**.
 
 ## Quy định bắt buộc
 
 - Mỗi patch mới phải có `manifest.json`, `patch_id`, SHA-256, dependency và mô tả thay đổi.
 - Mỗi lần phát hành patch phải cập nhật `CHANGELOG.md` và `patch-index.json`.
-- `stable/` là chuỗi patch hiện hành; `archive/` chỉ giữ patch cũ/superseded để rollback hoặc đối chiếu lịch sử.
-- Không cài patch trong `archive/` lên trên chuỗi stable hiện tại.
-- Trước khi đưa vào stable, ZIP phải vượt qua: ZIP integrity, hash từng payload theo manifest, Python syntax compile và JSON parse (nếu có).
-- Kiểm tra cấu trúc/syntax không thay thế kiểm thử runtime Windows/KEmulator; trạng thái runtime được ghi riêng trong changelog.
+- Trước khi đánh dấu stable, patch phải qua ZIP integrity, manifest/hash payload, Python syntax và test chuyên biệt nếu có.
+- Runtime test thực tế được ghi riêng; không coi static/package validation là runtime validation.
 
-## Chuỗi stable hiện tại
+## Current head
 
-1. UI-001 — layout 20/50/30
-2. UI-002 — icon/workflow header
-3. UI-003 — icon/toggle polish
-4. UI-004 — grouped header ribbon
-5. UI-005 — header ribbon hotfix
-6. UI-006 — compact vector header
-7. CORE-007 — JAR open hotfix
-8. CORE-008 — auto restart after patch
-9. CORE-010 — safe single-word scan + Path import fix
-10. UI-012 — Diagnostics dashboard 2×2
-11. CORE-013 — WMA/SMS compatibility assistant
-12. CORE-014 — scan freeze performance fix
-13. CORE-015 — activation classification fix
-14. CORE-016 — open JAR freeze hotfix
-15. CORE-017 — startup activation deep trace
-16. CORE-018 — Vietnamese bitmap font builder
-17. CORE-019 — unified translation + font pipeline
-18. CORE-020 — font-loader byte-length + CJK complete scan
-19. CORE-021 — residual CJK + technical-token filter
-20. CORE-022 — font-aware single Build JAR flow
-21. UI-023 — translation table read-only
-22. UI-024 — remove redundant Edit button from main ribbon
+`UI-051-recovery-confirmation-gate`
 
-## Patch bị superseded
+Chuỗi nền tảng stable qua CORE-026 được giữ trong `patch-index.json`. Toàn bộ patch từ CORE-027 đến UI-051, package SHA-256, dependency và status được ghi trong:
 
-- CORE-009: superseded bởi CORE-010 vì CORE-009 thiếu `pathlib.Path` ở runtime.
-- UI-011: superseded bởi UI-012; bootstrap cũ của UI-011 có thể làm mất các hook về sau.
+- `POST_CORE026_PATCHES.json`
+- `CHANGELOG.md`
+- `patch-index.json`
 
-## Stable archive bundle
+## Các mốc quan trọng sau CORE-026
 
-Bản archive đầy đủ hiện tại:
+- CORE-027/028: scene JSON export + fast JSON import.
+- UI-029 → UI-034: JSON import progress, statusbar fixes, responsive import và restore modern UI.
+- UI-035 → UI-038: branding + recovery performance.
+- CORE-039/040: binary whitespace preservation + binary frame overlap fix.
+- UI-041 → UI-045A: large JSON performance, Light Monokai progress, Build progress, zero-scroll hydration.
+- UI-046: virtual table experiment — **archived** do runtime lag.
+- UI-046R: rollback về QTableWidget.
+- UI-047: QTableWidget fast path.
+- UI-048: full sync trong Import/Recovery progress.
+- UI-049: giảm batch sync xuống 20 dòng/lần.
+- UI-050: Recovery progress match JSON progress.
+- UI-051: Recovery confirmation gate — chỉ mở progress sau khi người dùng bấm Yes.
 
-- `JVT_PATCH_STABLE_ARCHIVE_20260913_R2.zip`
-- SHA-256: `90bd69ffe16700143ae5c132c281e6506eddec2f95a875cdd1b5d75e8befb192`
-- Chứa: 22 patch stable + 2 patch archived/superseded + README + CHANGELOG + patch-index.
+## Patch archived / superseded
 
-Do GitHub connector hiện tại không nhận file binary trực tiếp qua Contents API, archive binary được giữ ngoài repository khi chưa có cơ chế upload artifact phù hợp. Luôn đối chiếu SHA-256 với `patch-index.json`.
+- CORE-009: superseded bởi CORE-010.
+- UI-011: superseded bởi UI-012.
+- UI-046: archived vì load lâu và click/double-click lag trong runtime thực tế.
+
+## Binary ZIP publication
+
+GitHub connector hiện tại chỉ cho phép tạo/cập nhật nội dung UTF-8 qua Contents API và **không upload arbitrary binary ZIP**. Vì vậy repository hiện lưu catalog, SHA-256, dependency, changelog và trạng thái patch; không được coi tên package trong catalog là bằng chứng ZIP binary đã nằm trên GitHub.
+
+Binary patch chỉ được xem là đã publish lên GitHub khi repository listing thực tế hiển thị file `.zip` hoặc có GitHub Release/Artifact đã xác minh.
