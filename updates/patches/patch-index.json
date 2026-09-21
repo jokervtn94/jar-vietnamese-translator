@@ -1,6 +1,6 @@
 {
   "schema": "jvt-patch-index-v3",
-  "updated": "2026-09-14",
+  "updated": "2026-09-21",
   "recommended_head": "UI-051-recovery-confirmation-gate",
   "legacy_stable_archive": {
     "file": "JVT_PATCH_STABLE_ARCHIVE_20260913_R4.zip",
@@ -48,7 +48,7 @@
     "UI-046R-rollback-virtual-table": "rollback for installations that received UI-046",
     "UI-047-qtablewidget-fast-path": "QTableWidget path restored and optimized",
     "UI-049-fine-grained-sync-batch": "Import/Recovery full sync uses 20 rows per batch",
-    "UI-051-recovery-confirmation-gate": "Recovery progress starts only after explicit Yes confirmation"
+    "UI-051-recovery-confirmation-gate": "Recovery progress starts only after explicit Yes confirmation; static/package validated, user-confirmed runtime pending"
   },
   "archived": [
     {"patch_id":"CORE-009-safe-single-word-scan","status":"archived","reason":"superseded by CORE-010; missing pathlib.Path runtime issue"},
