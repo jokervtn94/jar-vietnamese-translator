@@ -120,7 +120,9 @@ SHA-256 package: `fcf75d1af0adbd1c5f79dc33442bb5c8e5857d4503125559d909dec5cc64bf
 - Luồng đúng: verify snapshot → hỏi Yes/No → nếu Yes mới tạo progress dialog, bắt đầu timer, restore model và sync UI.
 - Nếu No: không mở Recovery progress, không mutate project.
 
-SHA-256 package: `015a2814d90308510c1fe394a16cf8719b4e11baaab1241095d73d1a83f60696`\n\nRuntime acceptance checklist: `updates/patches/logs/UI-051-recovery-confirmation-gate.md`
+SHA-256 package: `015a2814d90308510c1fe394a16cf8719b4e11baaab1241095d73d1a83f60696`
+
+Runtime acceptance checklist: `updates/patches/logs/UI-051-recovery-confirmation-gate.md`
 
 ## Historical stable chain through CORE-026
 
