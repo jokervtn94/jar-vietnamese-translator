@@ -16,6 +16,18 @@ Chuỗi phát triển sau CORE-026:
 
 Lưu ý: `UI-046-virtual-translation-table` đã được đánh dấu **archived** vì trải nghiệm runtime thực tế rất kém (load lâu, click/double-click lag). `UI-046R` là rollback bắt buộc cho máy đã cài UI-046. Từ UI-047 trở đi hướng tối ưu quay lại QTableWidget.
 
+## CORE-052 — SRC4 / Java-UTF Coverage
+
+- Bổ sung scan/build có cấu trúc cho tài nguyên `.src4` 5-record.
+- Bổ sung nhận dạng Java/J2ME `readUTF()` u16be chuẩn cho `.pak`.
+- Khôi phục 1.410 chuỗi SRC4, 11 class-string CJK và chuỗi một ký tự `酒` từ game thực tế.
+- Loại false positive `L罁` nằm trong GIF nhúng và 2 chuỗi ASCII runtime/debug.
+- Re-scan/export trên baseline UI-051 thực tế: **1.611 item**.
+- Cài bằng PatchUpdater trên bản copy sạch của `app.zip`: **PASS**.
+- Build smoke cấu trúc: patched=3, failed=0; structural/regression/direct verify: **PASS**.
+- SHA-256 package: `db1d14280a8456cd115e7d80cfc55eb2e573805f3c5574bd608c035a1bcf4754`.
+- Runtime status: **user-test pending**; `UI-051` vẫn là runtime-confirmed recommended head.
+
 ## CORE-027 — Scene JSON Export Fix
 
 - Sửa export JSON để các chuỗi `scene-script:*` được đưa vào file dịch đầy đủ.
