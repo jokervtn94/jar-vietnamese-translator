@@ -4,31 +4,279 @@
   "recommended_head": "UI-051-recovery-confirmation-gate",
   "note": "Package SHA-256 values were verified from the locally built patch ZIPs. Binary ZIP upload is not supported by the connected GitHub contents interface; this catalog records the exact package names, hashes, dependencies and status.",
   "patches": [
-    {"order":27,"patch_id":"CORE-027-scene-json-export-fix","file":"JVT_PATCH_CORE_027_SCENE_JSON_EXPORT_FIX.zip","sha256":"5619ee1a6f22c1c8255fc35faea4affa84f0a4375e7ff0091e4368b702aed817","requires":["CORE-026-scene-script-language-coverage"],"status":"stable"},
-    {"order":28,"patch_id":"CORE-028-fast-json-import","file":"JVT_PATCH_CORE_028_FAST_JSON_IMPORT.zip","sha256":"99e9ed23c4db003c0181f6ef2764719d536d2ca7ee9983ddf4418acb5be0f8b2","requires":["CORE-027-scene-json-export-fix"],"status":"stable"},
-    {"order":29,"patch_id":"UI-029-json-import-progress-monitor","file":"JVT_PATCH_UI_029_JSON_IMPORT_PROGRESS_MONITOR.zip","sha256":"39cfb6d664132f5892b559a7c5f1b07f9ac10875e3caa794d7298831b8a86adb","requires":["CORE-028-fast-json-import"],"status":"stable"},
-    {"order":30,"patch_id":"UI-030-statusbar-layout-hotfix","file":"JVT_PATCH_UI_030_STATUSBAR_LAYOUT_HOTFIX.zip","sha256":"3453886d037e8a0bd94bc1f0edacf37f1a5b84624e4df7b3fb0750fa953d9503","requires":["UI-029-json-import-progress-monitor"],"status":"stable"},
-    {"order":31,"patch_id":"UI-031-statusbar-rebuild-fix","file":"JVT_PATCH_UI_031_STATUSBAR_REBUILD_FIX.zip","sha256":"358b1ca10742cf7d6ce4af7ece2ac1530417782314f0440fafa8f8036a811cab","requires":["UI-030-statusbar-layout-hotfix"],"status":"stable"},
-    {"order":32,"patch_id":"UI-032-statusbar-startup-fix","file":"JVT_PATCH_UI_032_STATUSBAR_STARTUP_FIX.zip","sha256":"81063b3ad373e7176c7af070a4dfaab8e7623753a0eac7221cdec21c6e1621c5","requires":[],"status":"stable"},
-    {"order":33,"patch_id":"UI-033-responsive-json-import-fix","file":"JVT_PATCH_UI_033_RESPONSIVE_JSON_IMPORT_FIX.zip","sha256":"03acb0a6bb135b8d025e9308c4eeb40a3f984e47377431d91140fda0484eb354","requires":["UI-032-statusbar-startup-fix"],"status":"transitional","note":"Introduced a stale-bootstrap UI regression; immediately repaired by UI-034."},
-    {"order":34,"patch_id":"UI-034-restore-modern-ui-with-json-import-fix","file":"JVT_PATCH_UI_034_RESTORE_MODERN_UI_WITH_JSON_IMPORT_FIX.zip","sha256":"55bf60d13df835f68bf5824fc8930a2f6977f1174bf503ebaede022e07eb1f72","requires":["UI-033-responsive-json-import-fix"],"status":"stable"},
-    {"order":35,"patch_id":"UI-035-app-logo-and-ico","file":"JVT_PATCH_UI_035_APP_LOGO_AND_ICO.zip","sha256":"d95e9c5aab446423fca0fa336392fc63cfa62aae21422237c5773d7bd50dc776","requires":["UI-034-restore-modern-ui-with-json-import-fix"],"status":"stable"},
-    {"order":36,"patch_id":"UI-036-branding-pyside6-hotfix","file":"JVT_PATCH_UI_036_BRANDING_PYSIDE6_HOTFIX.zip","sha256":"ac471765042f8fc0333f9a999383b47b6ba2dfd0574bc68335a463348001550a","requires":["UI-035-app-logo-and-ico"],"status":"stable"},
-    {"order":37,"patch_id":"UI-037-recovery-restore-optimizer","file":"JVT_PATCH_UI_037_RECOVERY_RESTORE_OPTIMIZER.zip","sha256":"579cf8b4c91bcad12c2463c65bcbdfb20fad000b0f664f9caead024318fafafc","requires":["UI-036-branding-pyside6-hotfix"],"status":"stable"},
-    {"order":38,"patch_id":"UI-038-lazy-recovery-restore","file":"JVT_PATCH_UI_038_LAZY_RECOVERY_RESTORE.zip","sha256":"637118cc813e48a4c2f6e23007dfdd03d20d094f581adc6f0cf8d9cb23588d99","requires":["UI-037-recovery-restore-optimizer"],"status":"stable"},
-    {"order":39,"patch_id":"CORE-039-binary-whitespace-preservation","file":"JVT_PATCH_CORE_039_BINARY_WHITESPACE_PRESERVATION.zip","sha256":"080e17fc1b8e6d7f3ba84e2cda350e4362126f6cc15e1dee39dd197678a57a69","requires":["UI-038-lazy-recovery-restore"],"status":"stable"},
-    {"order":40,"patch_id":"CORE-040-binary-frame-overlap-fix","file":"JVT_PATCH_CORE_040_BINARY_FRAME_OVERLAP_FIX.zip","sha256":"8ea0ae02c057154bfc4b2e2bd85ba218685eafb854a2c896e5aab11dc48eb5ea","requires":["CORE-039-binary-whitespace-preservation"],"status":"stable"},
-    {"order":41,"patch_id":"UI-041-large-json-lazy-import","file":"JVT_PATCH_UI_041_LARGE_JSON_LAZY_IMPORT.zip","sha256":"288e5a1f88ed883fc35e4208169bafa85f7c66ff4c434d741ac2b4ffd02a8439","requires":["CORE-040-binary-frame-overlap-fix"],"status":"stable"},
-    {"order":42,"patch_id":"UI-042-light-monokai-json-progress","file":"JVT_PATCH_UI_042_LIGHT_MONOKAI_JSON_PROGRESS.zip","sha256":"ac92627ed182caf279b821ab40ff767727682dfc0f01c1c619dc6f83434465ae","requires":["UI-041-large-json-lazy-import"],"status":"stable"},
-    {"order":43,"patch_id":"UI-043-compact-accurate-json-progress","file":"JVT_PATCH_UI_043_COMPACT_ACCURATE_JSON_PROGRESS.zip","sha256":"fdea053b5c0cf57ed807017c1e17c73ea6ef647f379cd36b5ae0f0c4aa66dd","requires":["UI-042-light-monokai-json-progress"],"status":"stable"},
-    {"order":44,"patch_id":"UI-044-build-progress-match-json","file":"JVT_PATCH_UI_044_BUILD_PROGRESS_MATCH_JSON.zip","sha256":"018ef075af56299367db4f628e1c01210d177b43ef0a0c5dbc3985df6f1529ee","requires":["UI-043-compact-accurate-json-progress"],"status":"stable"},
-    {"order":45,"patch_id":"UI-045A-zero-scroll-hydration","file":"JVT_PATCH_UI_045A_ZERO_SCROLL_HYDRATION.zip","sha256":"4717102af951c5d6545c09bb73edff60f9c527039abbe83d78b8cab43fee2b9d","requires":["UI-044-build-progress-match-json"],"status":"stable"},
-    {"order":46,"patch_id":"UI-046-virtual-translation-table","file":"JVT_PATCH_UI_046_VIRTUAL_TRANSLATION_TABLE.zip","sha256":"1c68e97589ed5b6aa44f2ff45cd2981f57b34cdda7b503ddefccca33d7529f40","requires":["UI-045A-zero-scroll-hydration"],"status":"archived","reason":"Real-use regression: slow initial load and laggy click/double-click interaction."},
-    {"order":47,"patch_id":"UI-046R-rollback-virtual-table","file":"JVT_PATCH_UI_046R_ROLLBACK_VIRTUAL_TABLE.zip","sha256":"c577acbf127f4c9eedd6d190072546cd2fe61ca0b859d2325fe08ecc8ec7f697","requires":["UI-046-virtual-translation-table"],"status":"stable-rollback"},
-    {"order":48,"patch_id":"UI-047-qtablewidget-fast-path","file":"JVT_PATCH_UI_047_QTABLEWIDGET_FAST_PATH.zip","sha256":"2868322b853a406c00db6204d864b72319f9d0f04d720225cd335036e5702d93","requires":["UI-046R-rollback-virtual-table"],"status":"stable"},
-    {"order":49,"patch_id":"UI-048-full-sync-import-recovery","file":"JVT_PATCH_UI_048_FULL_SYNC_IMPORT_RECOVERY.zip","sha256":"c6099324bb604e90b8e2f84cd2deef03fe0d4b2b9706d7964685e30f2a2cff33","requires":["UI-047-qtablewidget-fast-path"],"status":"stable"},
-    {"order":50,"patch_id":"UI-049-fine-grained-sync-batch","file":"JVT_PATCH_UI_049_FINE_GRAINED_SYNC_BATCH.zip","sha256":"7daa13e1ece931e518ac9f4a8dd5c3e7f6c8bd15e0b4de7dfbf57f70ae427c66","requires":["UI-048-full-sync-import-recovery"],"status":"stable"},
-    {"order":51,"patch_id":"UI-050-recovery-progress-match-json","file":"JVT_PATCH_UI_050_RECOVERY_PROGRESS_MATCH_JSON.zip","sha256":"fcf75d1af0adbd1c5f79dc33442bb5c8e5857d4503125559d909dec5cc64bfa4","requires":["UI-049-fine-grained-sync-batch"],"status":"stable"},
-    {"order":52,"patch_id":"UI-051-recovery-confirmation-gate","file":"JVT_PATCH_UI_051_RECOVERY_CONFIRMATION_GATE.zip","sha256":"015a2814d90308510c1fe394a16cf8719b4e11baaab1241095d73d1a83f60696","requires":["UI-050-recovery-progress-match-json"],"status":"stable","runtime_status":"user-confirmed-pass","note":"Installed UI-051 was tested by the user on Windows and reported stable. Recovery confirmation gate is now the runtime-confirmed baseline."}
+    {
+      "order": 27,
+      "patch_id": "CORE-027-scene-json-export-fix",
+      "file": "JVT_PATCH_CORE_027_SCENE_JSON_EXPORT_FIX.zip",
+      "sha256": "5619ee1a6f22c1c8255fc35faea4affa84f0a4375e7ff0091e4368b702aed817",
+      "requires": [
+        "CORE-026-scene-script-language-coverage"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 28,
+      "patch_id": "CORE-028-fast-json-import",
+      "file": "JVT_PATCH_CORE_028_FAST_JSON_IMPORT.zip",
+      "sha256": "99e9ed23c4db003c0181f6ef2764719d536d2ca7ee9983ddf4418acb5be0f8b2",
+      "requires": [
+        "CORE-027-scene-json-export-fix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 29,
+      "patch_id": "UI-029-json-import-progress-monitor",
+      "file": "JVT_PATCH_UI_029_JSON_IMPORT_PROGRESS_MONITOR.zip",
+      "sha256": "39cfb6d664132f5892b559a7c5f1b07f9ac10875e3caa794d7298831b8a86adb",
+      "requires": [
+        "CORE-028-fast-json-import"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 30,
+      "patch_id": "UI-030-statusbar-layout-hotfix",
+      "file": "JVT_PATCH_UI_030_STATUSBAR_LAYOUT_HOTFIX.zip",
+      "sha256": "3453886d037e8a0bd94bc1f0edacf37f1a5b84624e4df7b3fb0750fa953d9503",
+      "requires": [
+        "UI-029-json-import-progress-monitor"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 31,
+      "patch_id": "UI-031-statusbar-rebuild-fix",
+      "file": "JVT_PATCH_UI_031_STATUSBAR_REBUILD_FIX.zip",
+      "sha256": "358b1ca10742cf7d6ce4af7ece2ac1530417782314f0440fafa8f8036a811cab",
+      "requires": [
+        "UI-030-statusbar-layout-hotfix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 32,
+      "patch_id": "UI-032-statusbar-startup-fix",
+      "file": "JVT_PATCH_UI_032_STATUSBAR_STARTUP_FIX.zip",
+      "sha256": "81063b3ad373e7176c7af070a4dfaab8e7623753a0eac7221cdec21c6e1621c5",
+      "requires": [],
+      "status": "stable"
+    },
+    {
+      "order": 33,
+      "patch_id": "UI-033-responsive-json-import-fix",
+      "file": "JVT_PATCH_UI_033_RESPONSIVE_JSON_IMPORT_FIX.zip",
+      "sha256": "03acb0a6bb135b8d025e9308c4eeb40a3f984e47377431d91140fda0484eb354",
+      "requires": [
+        "UI-032-statusbar-startup-fix"
+      ],
+      "status": "transitional",
+      "note": "Introduced a stale-bootstrap UI regression; immediately repaired by UI-034."
+    },
+    {
+      "order": 34,
+      "patch_id": "UI-034-restore-modern-ui-with-json-import-fix",
+      "file": "JVT_PATCH_UI_034_RESTORE_MODERN_UI_WITH_JSON_IMPORT_FIX.zip",
+      "sha256": "55bf60d13df835f68bf5824fc8930a2f6977f1174bf503ebaede022e07eb1f72",
+      "requires": [
+        "UI-033-responsive-json-import-fix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 35,
+      "patch_id": "UI-035-app-logo-and-ico",
+      "file": "JVT_PATCH_UI_035_APP_LOGO_AND_ICO.zip",
+      "sha256": "d95e9c5aab446423fca0fa336392fc63cfa62aae21422237c5773d7bd50dc776",
+      "requires": [
+        "UI-034-restore-modern-ui-with-json-import-fix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 36,
+      "patch_id": "UI-036-branding-pyside6-hotfix",
+      "file": "JVT_PATCH_UI_036_BRANDING_PYSIDE6_HOTFIX.zip",
+      "sha256": "ac471765042f8fc0333f9a999383b47b6ba2dfd0574bc68335a463348001550a",
+      "requires": [
+        "UI-035-app-logo-and-ico"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 37,
+      "patch_id": "UI-037-recovery-restore-optimizer",
+      "file": "JVT_PATCH_UI_037_RECOVERY_RESTORE_OPTIMIZER.zip",
+      "sha256": "579cf8b4c91bcad12c2463c65bcbdfb20fad000b0f664f9caead024318fafafc",
+      "requires": [
+        "UI-036-branding-pyside6-hotfix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 38,
+      "patch_id": "UI-038-lazy-recovery-restore",
+      "file": "JVT_PATCH_UI_038_LAZY_RECOVERY_RESTORE.zip",
+      "sha256": "637118cc813e48a4c2f6e23007dfdd03d20d094f581adc6f0cf8d9cb23588d99",
+      "requires": [
+        "UI-037-recovery-restore-optimizer"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 39,
+      "patch_id": "CORE-039-binary-whitespace-preservation",
+      "file": "JVT_PATCH_CORE_039_BINARY_WHITESPACE_PRESERVATION.zip",
+      "sha256": "080e17fc1b8e6d7f3ba84e2cda350e4362126f6cc15e1dee39dd197678a57a69",
+      "requires": [
+        "UI-038-lazy-recovery-restore"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 40,
+      "patch_id": "CORE-040-binary-frame-overlap-fix",
+      "file": "JVT_PATCH_CORE_040_BINARY_FRAME_OVERLAP_FIX.zip",
+      "sha256": "8ea0ae02c057154bfc4b2e2bd85ba218685eafb854a2c896e5aab11dc48eb5ea",
+      "requires": [
+        "CORE-039-binary-whitespace-preservation"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 41,
+      "patch_id": "UI-041-large-json-lazy-import",
+      "file": "JVT_PATCH_UI_041_LARGE_JSON_LAZY_IMPORT.zip",
+      "sha256": "288e5a1f88ed883fc35e4208169bafa85f7c66ff4c434d741ac2b4ffd02a8439",
+      "requires": [
+        "CORE-040-binary-frame-overlap-fix"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 42,
+      "patch_id": "UI-042-light-monokai-json-progress",
+      "file": "JVT_PATCH_UI_042_LIGHT_MONOKAI_JSON_PROGRESS.zip",
+      "sha256": "ac92627ed182caf279b821ab40ff767727682dfc0f01c1c619dc6f83434465ae",
+      "requires": [
+        "UI-041-large-json-lazy-import"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 43,
+      "patch_id": "UI-043-compact-accurate-json-progress",
+      "file": "JVT_PATCH_UI_043_COMPACT_ACCURATE_JSON_PROGRESS.zip",
+      "sha256": "fdea053b5c0cf57ed807017c1e17c73ea6ef647f379cd36b5ae0f0c4aa66dd",
+      "requires": [
+        "UI-042-light-monokai-json-progress"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 44,
+      "patch_id": "UI-044-build-progress-match-json",
+      "file": "JVT_PATCH_UI_044_BUILD_PROGRESS_MATCH_JSON.zip",
+      "sha256": "018ef075af56299367db4f628e1c01210d177b43ef0a0c5dbc3985df6f1529ee",
+      "requires": [
+        "UI-043-compact-accurate-json-progress"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 45,
+      "patch_id": "UI-045A-zero-scroll-hydration",
+      "file": "JVT_PATCH_UI_045A_ZERO_SCROLL_HYDRATION.zip",
+      "sha256": "4717102af951c5d6545c09bb73edff60f9c527039abbe83d78b8cab43fee2b9d",
+      "requires": [
+        "UI-044-build-progress-match-json"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 46,
+      "patch_id": "UI-046-virtual-translation-table",
+      "file": "JVT_PATCH_UI_046_VIRTUAL_TRANSLATION_TABLE.zip",
+      "sha256": "1c68e97589ed5b6aa44f2ff45cd2981f57b34cdda7b503ddefccca33d7529f40",
+      "requires": [
+        "UI-045A-zero-scroll-hydration"
+      ],
+      "status": "archived",
+      "reason": "Real-use regression: slow initial load and laggy click/double-click interaction."
+    },
+    {
+      "order": 47,
+      "patch_id": "UI-046R-rollback-virtual-table",
+      "file": "JVT_PATCH_UI_046R_ROLLBACK_VIRTUAL_TABLE.zip",
+      "sha256": "c577acbf127f4c9eedd6d190072546cd2fe61ca0b859d2325fe08ecc8ec7f697",
+      "requires": [
+        "UI-046-virtual-translation-table"
+      ],
+      "status": "stable-rollback"
+    },
+    {
+      "order": 48,
+      "patch_id": "UI-047-qtablewidget-fast-path",
+      "file": "JVT_PATCH_UI_047_QTABLEWIDGET_FAST_PATH.zip",
+      "sha256": "2868322b853a406c00db6204d864b72319f9d0f04d720225cd335036e5702d93",
+      "requires": [
+        "UI-046R-rollback-virtual-table"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 49,
+      "patch_id": "UI-048-full-sync-import-recovery",
+      "file": "JVT_PATCH_UI_048_FULL_SYNC_IMPORT_RECOVERY.zip",
+      "sha256": "c6099324bb604e90b8e2f84cd2deef03fe0d4b2b9706d7964685e30f2a2cff33",
+      "requires": [
+        "UI-047-qtablewidget-fast-path"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 50,
+      "patch_id": "UI-049-fine-grained-sync-batch",
+      "file": "JVT_PATCH_UI_049_FINE_GRAINED_SYNC_BATCH.zip",
+      "sha256": "7daa13e1ece931e518ac9f4a8dd5c3e7f6c8bd15e0b4de7dfbf57f70ae427c66",
+      "requires": [
+        "UI-048-full-sync-import-recovery"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 51,
+      "patch_id": "UI-050-recovery-progress-match-json",
+      "file": "JVT_PATCH_UI_050_RECOVERY_PROGRESS_MATCH_JSON.zip",
+      "sha256": "fcf75d1af0adbd1c5f79dc33442bb5c8e5857d4503125559d909dec5cc64bfa4",
+      "requires": [
+        "UI-049-fine-grained-sync-batch"
+      ],
+      "status": "stable"
+    },
+    {
+      "order": 52,
+      "patch_id": "UI-051-recovery-confirmation-gate",
+      "file": "JVT_PATCH_UI_051_RECOVERY_CONFIRMATION_GATE.zip",
+      "sha256": "015a2814d90308510c1fe394a16cf8719b4e11baaab1241095d73d1a83f60696",
+      "requires": [
+        "UI-050-recovery-progress-match-json"
+      ],
+      "status": "stable",
+      "runtime_status": "user-confirmed-pass",
+      "note": "Installed UI-051 was tested by the user on Windows and reported stable. Recovery confirmation gate is now the runtime-confirmed baseline."
+    },
+    {
+      "order": 53,
+      "patch_id": "CORE-052-src4-javautf-coverage",
+      "file": "JVT_PATCH_CORE_052_SRC4_JAVAUTF_COVERAGE.zip",
+      "sha256": "db1d14280a8456cd115e7d80cfc55eb2e573805f3c5574bd608c035a1bcf4754",
+      "requires": [
+        "UI-051-recovery-confirmation-gate"
+      ],
+      "status": "static-validated",
+      "runtime_status": "user-test-pending",
+      "note": "Exact UI-051 runtime baseline integrated and PatchUpdater install tested. Real-game scan/export=1611; SRC4/PAK build smoke PASS. Awaiting user-confirmed Windows/game runtime."
+    }
   ]
 }
