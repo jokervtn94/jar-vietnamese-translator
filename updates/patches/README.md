@@ -13,7 +13,9 @@ Thư mục này là kho patch chuẩn của **JAR Vietnamese Translator**.
 
 `UI-051-recovery-confirmation-gate`
 
-Chuỗi nền tảng stable qua CORE-026 được giữ trong `patch-index.json`. Toàn bộ patch từ CORE-027 đến UI-051, package SHA-256, dependency và status được ghi trong:\n\n> UI-051 hiện là **recommended head** nhưng chưa được gọi là runtime PASS/stable cho tới khi người dùng xác nhận test Windows thực tế.
+Chuỗi nền tảng stable qua CORE-026 được giữ trong `patch-index.json`. Toàn bộ patch từ CORE-027 đến UI-051, package SHA-256, dependency và status được ghi trong:
+
+> UI-051 hiện là **recommended head** nhưng chưa được gọi là runtime PASS/stable cho tới khi người dùng xác nhận test Windows thực tế.
 
 - `POST_CORE026_PATCHES.json`
 - `CHANGELOG.md`
