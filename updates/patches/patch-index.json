@@ -38,8 +38,8 @@
   "post_core026_catalog": {
     "file": "updates/patches/POST_CORE026_PATCHES.json",
     "from": "CORE-027-scene-json-export-fix",
-    "through": "UI-051-recovery-confirmation-gate",
-    "package_count": 26,
+    "through": "CORE-052-src4-javautf-coverage",
+    "package_count": 27,
     "verified_package_sha256": true
   },
   "current_notes": {
@@ -48,12 +48,25 @@
     "UI-046R-rollback-virtual-table": "rollback for installations that received UI-046",
     "UI-047-qtablewidget-fast-path": "QTableWidget path restored and optimized",
     "UI-049-fine-grained-sync-batch": "Import/Recovery full sync uses 20 rows per batch",
-    "UI-051-recovery-confirmation-gate": "Recovery progress starts only after explicit Yes confirmation; user-confirmed Windows runtime PASS and stable baseline"
+    "UI-051-recovery-confirmation-gate": "Recovery progress starts only after explicit Yes confirmation; user-confirmed Windows runtime PASS and stable baseline",
+    "CORE-052-src4-javautf-coverage": "Exact UI-051 integration PASS; 1611 clean export items and structured SRC4/PAK build smoke PASS; Windows/game runtime confirmation pending"
   },
   "archived": [
-    {"patch_id":"CORE-009-safe-single-word-scan","status":"archived","reason":"superseded by CORE-010; missing pathlib.Path runtime issue"},
-    {"patch_id":"UI-011-diagnostics-display-fix","status":"archived","reason":"superseded by UI-012; stale bootstrap could regress newer hooks"},
-    {"patch_id":"UI-046-virtual-translation-table","status":"archived","reason":"real-use regression: slow load and laggy click/double-click interaction"}
+    {
+      "patch_id": "CORE-009-safe-single-word-scan",
+      "status": "archived",
+      "reason": "superseded by CORE-010; missing pathlib.Path runtime issue"
+    },
+    {
+      "patch_id": "UI-011-diagnostics-display-fix",
+      "status": "archived",
+      "reason": "superseded by UI-012; stale bootstrap could regress newer hooks"
+    },
+    {
+      "patch_id": "UI-046-virtual-translation-table",
+      "status": "archived",
+      "reason": "real-use regression: slow load and laggy click/double-click interaction"
+    }
   ],
   "publication": {
     "binary_zip_verified_in_repository": false,
