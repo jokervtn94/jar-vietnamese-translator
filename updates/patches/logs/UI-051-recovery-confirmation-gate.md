@@ -43,8 +43,9 @@ If the user presses **Yes**:
 ## Validation state
 
 - Package/static validation: PASS.
-- User-confirmed Windows runtime: PENDING.
-- Runtime PASS must not be claimed until the user tests the actual installed patch and confirms the contract above.
+- User-confirmed Windows runtime: PASS.
+- User confirmed on 2026-09-21 that UI-051 was installed in the app and runs stably.
+- UI-051 is the runtime-confirmed baseline for subsequent patches.
 
 ## Non-regression constraints
 
