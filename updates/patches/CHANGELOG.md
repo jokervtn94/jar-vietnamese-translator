@@ -114,6 +114,8 @@ SHA-256 package: `fcf75d1af0adbd1c5f79dc33442bb5c8e5857d4503125559d909dec5cc64bf
 
 ## UI-051 — Recovery Confirmation Gate
 
+**Validation:** static/package PASS · user-confirmed Windows runtime PENDING.
+
 - Sửa lỗi progress Recovery xuất hiện và timer chạy trước khi người dùng xác nhận.
 - Luồng đúng: verify snapshot → hỏi Yes/No → nếu Yes mới tạo progress dialog, bắt đầu timer, restore model và sync UI.
 - Nếu No: không mở Recovery progress, không mutate project.
