@@ -35,6 +35,7 @@ Chuỗi nền tảng stable qua CORE-026 được giữ trong `patch-index.json`
 - UI-049: giảm batch sync xuống 20 dòng/lần.
 - UI-050: Recovery progress match JSON progress.
 - UI-051: Recovery confirmation gate — chỉ mở progress sau khi người dùng bấm Yes. **User-confirmed Windows runtime PASS; stable baseline.**
+- CORE-052: structured SRC4 + Java-UTF `.pak` coverage; real-game scan/export **1,611** items and build smoke PASS. **Runtime user-test pending; UI-051 remains recommended head.**
 
 ## Patch archived / superseded
 
